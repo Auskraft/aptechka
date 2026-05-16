@@ -1,0 +1,22 @@
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# Project-local files — не загружать на git
+01-tech-spec.md
+02-design-brief.md
+Work-project.md
+design_handoff_home_apteka/
+Код из архива (потом удалить)/

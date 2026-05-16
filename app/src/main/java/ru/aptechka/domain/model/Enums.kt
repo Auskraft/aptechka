@@ -1,0 +1,31 @@
+package ru.aptechka.domain.model
+
+enum class FormKey {
+    TABLET, CAPSULE, SYRUP, DROPS, OINTMENT, INJECTION, SPRAY, PATCH, SUPPOSITORY, OTHER
+}
+
+enum class UnitKey {
+    MG, ML, MCG, UNITS, PERCENT
+}
+
+enum class CategoryKey {
+    ANALGESIC, ANTIBIOTIC, ANTIVIRAL, ANTIFUNGAL, ANTIHISTAMINE,
+    CARDIOVASCULAR, GASTROINTESTINAL, RESPIRATORY, DERMATOLOGICAL,
+    VITAMINS, HORMONAL, NEUROLOGICAL, OPHTHALMIC, OTHER
+}
+
+enum class BatchStatus {
+    ACTIVE, EXPIRING_SOON, EXPIRED
+}
+
+enum class SortOrder {
+    NAME_ASC, NAME_DESC, EXPIRY_ASC, EXPIRY_DESC
+}
+
+enum class BackupFrequency {
+    DAILY, WEEKLY, MONTHLY, NEVER
+}
+
+enum class AppTheme {
+    SYSTEM, LIGHT, DARK
+}

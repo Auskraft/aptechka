@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew assembleDebug --no-daemon)",
+      "PowerShell(Get-ChildItem \"C:\\\\\" -Directory -ErrorAction SilentlyContinue | Where-Object {$_.Name -match \"Program|Android|Java\"} | Select-Object FullName)",
+      "PowerShell([System.IO.Directory]::GetDirectories\\(\"A:\\\\AS\"\\) | Select-Object -First 10)",
+      "Bash(JAVA_HOME=\"A:/AS/jbr\" ./gradlew assembleDebug --no-daemon --no-configuration-cache)",
+      "PowerShell($env:JAVA_HOME = \"A:\\\\AS\\\\jbr\"; $env:PATH = \"A:\\\\AS\\\\jbr\\\\bin;$env:PATH\"; Set-Location \"A:\\\\StudioProjects\\\\Aptechka\"; .\\\\gradlew.bat assembleDebug --no-daemon 2>&1 | Select-Object -Last 60)"
+    ]
+  }
+}
