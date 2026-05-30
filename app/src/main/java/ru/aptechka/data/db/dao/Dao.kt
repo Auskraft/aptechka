@@ -30,6 +30,9 @@ interface UserDrugDao {
     @Query("SELECT * FROM user_drugs WHERE kitId = :kitId ORDER BY name ASC")
     fun getDrugsByKit(kitId: Long): Flow<List<UserDrugEntity>>
 
+    @Query("SELECT * FROM user_drugs")
+    fun getAllDrugs(): Flow<List<UserDrugEntity>>
+
     @Query("SELECT * FROM user_drugs WHERE id = :id")
     suspend fun getDrugById(id: Long): UserDrugEntity?
 
