@@ -64,6 +64,107 @@
     <string name="settings_privacy">Политика конфиденциальности</string>
     <string name="settings_review">Оставить отзыв</string>
 
+    <!-- Add / Edit drug -->
+    <string name="new_drug_title">Новый препарат</string>
+    <string name="section_main">ОСНОВНОЕ</string>
+    <string name="section_batch">ПАРТИЯ (ПЕРВАЯ УПАКОВКА)</string>
+    <string name="section_extra">ДОПОЛНИТЕЛЬНО</string>
+    <string name="field_drug_name">Препарат</string>
+    <string name="field_form">Форма выпуска</string>
+    <string name="field_dosage">Дозировка</string>
+    <string name="field_category">Категория</string>
+    <string name="field_expiry">Срок годности</string>
+    <string name="field_expiry_hint">Укажите дату</string>
+    <string name="field_quantity">Количество</string>
+    <string name="field_notes">Как принимать</string>
+    <string name="unit_pieces">шт</string>
+
+    <!-- Drug forms -->
+    <string name="form_tablet">Таблетки</string>
+    <string name="form_capsule">Капсулы</string>
+    <string name="form_syrup">Сироп</string>
+    <string name="form_drops">Капли</string>
+    <string name="form_ointment">Мазь</string>
+    <string name="form_injection">Инъекция</string>
+    <string name="form_spray">Спрей</string>
+    <string name="form_patch">Пластырь</string>
+    <string name="form_suppository">Суппозитории</string>
+    <string name="form_other">Другое</string>
+
+    <!-- Drug categories -->
+    <string name="category_analgesic">Болеутоляющее</string>
+    <string name="category_antibiotic">Антибиотик</string>
+    <string name="category_antiviral">Противовирусное</string>
+    <string name="category_antifungal">Противогрибковое</string>
+    <string name="category_antihistamine">Антигистаминное</string>
+    <string name="category_cardiovascular">Сердечно-сосудистое</string>
+    <string name="category_gastrointestinal">Желудочно-кишечное</string>
+    <string name="category_respiratory">Дыхательная система</string>
+    <string name="category_dermatological">Дерматологическое</string>
+    <string name="category_vitamins">Витамины</string>
+    <string name="category_hormonal">Гормональное</string>
+    <string name="category_neurological">Неврологическое</string>
+    <string name="category_ophthalmic">Офтальмологическое</string>
+    <string name="category_other">Другое</string>
+
+    <!-- Counts (plurals) -->
+    <plurals name="plural_kits">
+        <item quantity="one">%d аптечка</item>
+        <item quantity="few">%d аптечки</item>
+        <item quantity="many">%d аптечек</item>
+        <item quantity="other">%d аптечки</item>
+    </plurals>
+    <plurals name="plural_batches">
+        <item quantity="one">%d партия</item>
+        <item quantity="few">%d партии</item>
+        <item quantity="many">%d партий</item>
+        <item quantity="other">%d партии</item>
+    </plurals>
+    <plurals name="plural_days">
+        <item quantity="one">%d день</item>
+        <item quantity="few">%d дня</item>
+        <item quantity="many">%d дней</item>
+        <item quantity="other">%d дня</item>
+    </plurals>
+    <plurals name="plural_months">
+        <item quantity="one">%d месяц</item>
+        <item quantity="few">%d месяца</item>
+        <item quantity="many">%d месяцев</item>
+        <item quantity="other">%d месяца</item>
+    </plurals>
+
+    <!-- Expiry phrases (%1$s = pluralized days/months) -->
+    <string name="expiry_expired">истёк %1$s назад</string>
+    <string name="expiry_today">истекает сегодня</string>
+    <string name="expiry_in">истекает через %1$s</string>
+    <string name="expiry_in_short">через %1$s</string>
+    <string name="expiry_unknown">срок не указан</string>
+
+    <!-- Quantity (%1$s = formatted number) -->
+    <string name="qty_pieces">%1$s шт</string>
+
+    <!-- Content descriptions -->
+    <string name="cd_back">Назад</string>
+    <string name="cd_search">Поиск</string>
+    <string name="cd_menu">Меню</string>
+    <string name="cd_add">Добавить</string>
+
+    <!-- Counts in subtitles (%1$d = number) -->
+    <string name="count_expired">%1$d просрочено</string>
+    <string name="count_soon">%1$d скоро</string>
+    <string name="count_to_buy">%1$d к покупке</string>
+    <string name="count_to_distribute">%1$d разнести</string>
+
+    <!-- Dialogs / actions -->
+    <string name="delete_confirm_title">Удалить «%1$s»?</string>
+    <string name="edit_expiry">Изменить срок</string>
+    <string name="action_add">Добавить</string>
+    <string name="add_to_shopping_title">Добавить в покупки</string>
+    <string name="shopping_item_name_label">Название препарата</string>
+    <string name="shopping_add_drug">Добавить препарат</string>
+    <string name="picker_color">Цвет</string>
+    <string name="picker_icon">Иконка</string>
+
     <!-- Common -->
     <string name="save">Сохранить</string>
     <string name="cancel">Отмена</string>

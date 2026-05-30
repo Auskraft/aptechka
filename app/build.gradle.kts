@@ -70,4 +70,6 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.coil.compose)
     debugImplementation(libs.androidx.ui.tooling)
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
 }

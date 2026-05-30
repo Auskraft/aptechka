@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -19,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -28,10 +30,12 @@ import androidx.navigation.NavController
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import ru.aptechka.R
+import ru.aptechka.ui.navigation.Screen
 import ru.aptechka.domain.model.BatchStatus
-import ru.aptechka.domain.model.FormKey
 import ru.aptechka.domain.model.UserDrugWithBatches
+import ru.aptechka.ui.forms.Forms
 import ru.aptechka.ui.theme.KitColors
+import ru.aptechka.ui.theme.LocalDimens
 import ru.aptechka.ui.theme.LocalStatusColors
 import java.text.SimpleDateFormat
 import java.util.*
@@ -51,11 +55,12 @@ fun KitDetailScreen(
     viewModel: KitDetailViewModel = koinViewModel(parameters = { parametersOf(kitId) }),
 ) {
     val kit by viewModel.kit.collectAsState()
-    val kitName     = kit?.name     ?: "Аптечка"
+    val kitName     = kit?.name     ?: stringResource(R.string.kits_title)
     val kitColorKey = kit?.colorHex ?: "green"
     val kitIconKey  = kit?.iconName ?: "home"
 
     val drugs by viewModel.drugs.collectAsState()
+    val dims = LocalDimens.current
     var sortMode by remember { mutableStateOf(SortMode.EXPIRY) }
     var showFabMenu by remember { mutableStateOf(false) }
     var drugToDelete by remember { mutableStateOf<UserDrugWithBatches?>(null) }
@@ -74,7 +79,7 @@ fun KitDetailScreen(
             TopAppBar(
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Outlined.ArrowBack, contentDescription = "Назад")
+                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = stringResource(R.string.cd_back))
                     }
                 },
                 title = {
@@ -96,10 +101,10 @@ fun KitDetailScreen(
                 },
                 actions = {
                     IconButton(onClick = { /* TODO: search in kit */ }) {
-                        Icon(Icons.Outlined.Search, contentDescription = "Поиск")
+                        Icon(Icons.Outlined.Search, contentDescription = stringResource(R.string.cd_search))
                     }
                     IconButton(onClick = { /* TODO: kit menu */ }) {
-                        Icon(Icons.Outlined.MoreVert, contentDescription = "Меню")
+                        Icon(Icons.Outlined.MoreVert, contentDescription = stringResource(R.string.cd_menu))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -112,7 +117,7 @@ fun KitDetailScreen(
                 AnimatedVisibility(visible = showFabMenu) {
                     Column(
                         horizontalAlignment = Alignment.End,
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(dims.itemGap),
                     ) {
                         FabMenuItem(
                             label   = stringResource(R.string.scan),
@@ -122,7 +127,10 @@ fun KitDetailScreen(
                         FabMenuItem(
                             label   = stringResource(R.string.manual),
                             icon    = Icons.Outlined.Edit,
-                            onClick = { showFabMenu = false /* TODO: add drug form */ },
+                            onClick = {
+                                showFabMenu = false
+                                navController.navigate(Screen.AddDrug.go(kitId))
+                            },
                         )
                         Spacer(Modifier.height(4.dp))
                     }
@@ -140,9 +148,9 @@ fun KitDetailScreen(
     ) { padding ->
         LazyColumn(
             contentPadding = PaddingValues(
-                start  = 16.dp,
-                end    = 16.dp,
-                top    = padding.calculateTopPadding() + 4.dp,
+                start  = dims.screenPadding,
+                end    = dims.screenPadding,
+                top    = padding.calculateTopPadding() + dims.xs,
                 bottom = padding.calculateBottomPadding() + 96.dp,
             ),
         ) {
@@ -185,7 +193,7 @@ fun KitDetailScreen(
     drugToDelete?.let { dw ->
         AlertDialog(
             onDismissRequest = { drugToDelete = null },
-            title = { Text("Удалить «${dw.drug.name}»?") },
+            title = { Text(stringResource(R.string.delete_confirm_title, dw.drug.name)) },
             text  = { Text(stringResource(R.string.delete_drug_confirm)) },
             confirmButton = {
                 TextButton(onClick = {
@@ -216,9 +224,10 @@ private fun SortChipsRow(
         SortMode.LOCATION to stringResource(R.string.sort_by_location),
         SortMode.STATUS   to stringResource(R.string.sort_by_status),
     )
+    val dims = LocalDimens.current
     LazyRow(
         modifier            = modifier,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(dims.itemGap),
     ) {
         items(chips) { (mode, label) ->
             FilterChip(
@@ -250,6 +259,7 @@ private fun DrugRow(
 ) {
     val drug          = drugWithBatches.drug
     val statusColors  = LocalStatusColors.current
+    val dims          = LocalDimens.current
     val worstStatus   = drugWithBatches.worstStatus
     val nearestExpiry = drugWithBatches.nearestExpiry
     val totalQty      = drugWithBatches.totalQuantity
@@ -260,40 +270,34 @@ private fun DrugRow(
         else                     -> statusColors.okFg
     }
 
-    val expiryLabel = nearestExpiry?.let { ts ->
-        val days = ((ts - System.currentTimeMillis()) / 86_400_000L).toInt()
-        when {
-            days < 0  -> "истёк ${abs(days)} дней назад"
-            days == 0 -> "истекает сегодня"
-            days < 60 -> "истекает через $days дн."
-            else      -> {
-                val months = days / 30
-                "истекает через $months мес."
+    val expiryLabel = when {
+        nearestExpiry == null -> stringResource(R.string.expiry_unknown)
+        else -> {
+            val days = ((nearestExpiry - System.currentTimeMillis()) / 86_400_000L).toInt()
+            when {
+                days < 0  -> stringResource(R.string.expiry_expired, pluralStringResource(R.plurals.plural_days, abs(days), abs(days)))
+                days == 0 -> stringResource(R.string.expiry_today)
+                days < 60 -> stringResource(R.string.expiry_in, pluralStringResource(R.plurals.plural_days, days, days))
+                else      -> {
+                    val months = days / 30
+                    stringResource(R.string.expiry_in, pluralStringResource(R.plurals.plural_months, months, months))
+                }
             }
         }
-    } ?: "срок не указан"
-
-    val formLabel = when (drug.form) {
-        FormKey.TABLET      -> "Таблетки"
-        FormKey.CAPSULE     -> "Капсулы"
-        FormKey.SYRUP       -> "Сироп"
-        FormKey.DROPS       -> "Капли"
-        FormKey.OINTMENT    -> "Мазь"
-        FormKey.INJECTION   -> "Инъекция"
-        FormKey.SPRAY       -> "Спрей"
-        FormKey.PATCH       -> "Пластырь"
-        FormKey.SUPPOSITORY -> "Суппозитории"
-        else                -> "Другое"
     }
 
-    val qtyStr = when {
-        totalQty == totalQty.toLong().toFloat() -> "${totalQty.toLong()} шт"
-        else -> "${"%.1f".format(totalQty)} шт"
+    val formLabel = Forms.label(drug.form)
+
+    val qtyNumber = if (totalQty == totalQty.toLong().toFloat()) {
+        totalQty.toLong().toString()
+    } else {
+        "%.1f".format(totalQty)
     }
+    val qtyStr = stringResource(R.string.qty_pieces, qtyNumber)
 
     Surface(
         modifier  = modifier.fillMaxWidth(),
-        shape     = RoundedCornerShape(16.dp),
+        shape     = RoundedCornerShape(dims.radiusMd),
         color     = MaterialTheme.colorScheme.surfaceContainer,
         onClick   = onClick,
     ) {
@@ -312,11 +316,11 @@ private fun DrugRow(
                     .padding(10.dp)
                     .size(56.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(formTileColor(drug.form)),
+                    .background(Forms.color(drug.form)),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    formIcon(drug.form),
+                    Forms.icon(drug.form),
                     contentDescription = null,
                     tint     = Color.White,
                     modifier = Modifier.size(28.dp),
@@ -343,7 +347,11 @@ private fun DrugRow(
                 )
                 if (drugWithBatches.batches.size > 1) {
                     Text(
-                        text  = "· ${drugWithBatches.batches.size} партии",
+                        text  = "· " + pluralStringResource(
+                            R.plurals.plural_batches,
+                            drugWithBatches.batches.size,
+                            drugWithBatches.batches.size,
+                        ),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -385,40 +393,14 @@ private fun DrugRow(
     }
 }
 
-// ── Form helpers ──────────────────────────────────────────────────────────────
-
-private fun formIcon(form: FormKey) = when (form) {
-    FormKey.TABLET      -> Icons.Outlined.Medication
-    FormKey.CAPSULE     -> Icons.Outlined.Medication
-    FormKey.SYRUP       -> Icons.Outlined.LocalDrink
-    FormKey.DROPS       -> Icons.Outlined.Opacity
-    FormKey.OINTMENT    -> Icons.Outlined.Spa
-    FormKey.INJECTION   -> Icons.Outlined.Vaccines
-    FormKey.SPRAY       -> Icons.Outlined.Air
-    FormKey.PATCH       -> Icons.Outlined.Healing
-    FormKey.SUPPOSITORY -> Icons.Outlined.Medication
-    else                -> Icons.Outlined.Medication
-}
-
-private fun formTileColor(form: FormKey) = when (form) {
-    FormKey.TABLET      -> Color(0xFF4A7C59)
-    FormKey.CAPSULE     -> Color(0xFF426EA3)
-    FormKey.SYRUP       -> Color(0xFFB57A14)
-    FormKey.DROPS       -> Color(0xFF4E6868)
-    FormKey.OINTMENT    -> Color(0xFF836A47)
-    FormKey.INJECTION   -> Color(0xFF6E5A9B)
-    FormKey.SPRAY       -> Color(0xFF347D7D)
-    FormKey.PATCH       -> Color(0xFFA65082)
-    else                -> Color(0xFF6E6A60)
-}
-
 // ── FAB menu item ─────────────────────────────────────────────────────────────
 
 @Composable
 private fun FabMenuItem(label: String, icon: ImageVector, onClick: () -> Unit) {
+    val dims = LocalDimens.current
     Row(verticalAlignment = Alignment.CenterVertically) {
         Surface(
-            shape = RoundedCornerShape(999.dp),
+            shape = RoundedCornerShape(dims.radiusPill),
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
             onClick = onClick,
         ) {

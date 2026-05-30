@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -23,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import org.koin.androidx.compose.koinViewModel
 import ru.aptechka.R
 import ru.aptechka.domain.model.ShoppingItem
+import ru.aptechka.ui.theme.LocalDimens
 import ru.aptechka.ui.theme.LocalStatusColors
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -32,11 +34,15 @@ fun ShoppingScreen(viewModel: ShoppingViewModel = koinViewModel()) {
     val purchased by viewModel.purchased.collectAsState()
     var showAddSheet by remember { mutableStateOf(false) }
 
-    val statusColors = LocalStatusColors.current
+    val dims = LocalDimens.current
+
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             LargeTopAppBar(
+                scrollBehavior = scrollBehavior,
                 title = {
                     Column {
                         Text(
@@ -44,12 +50,12 @@ fun ShoppingScreen(viewModel: ShoppingViewModel = koinViewModel()) {
                             style = MaterialTheme.typography.displayMedium,
                         )
                         if (toBuy.isNotEmpty() || purchased.isNotEmpty()) {
+                            val sub = listOfNotNull(
+                                stringResource(R.string.count_to_buy, toBuy.size).takeIf { toBuy.isNotEmpty() },
+                                stringResource(R.string.count_to_distribute, purchased.size).takeIf { purchased.isNotEmpty() },
+                            ).joinToString(" · ")
                             Text(
-                                text  = buildString {
-                                    if (toBuy.isNotEmpty())     append("${toBuy.size} к покупке")
-                                    if (toBuy.isNotEmpty() && purchased.isNotEmpty()) append(" · ")
-                                    if (purchased.isNotEmpty()) append("${purchased.size} разнести")
-                                },
+                                text  = sub,
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -58,7 +64,7 @@ fun ShoppingScreen(viewModel: ShoppingViewModel = koinViewModel()) {
                 },
                 actions = {
                     IconButton(onClick = { showAddSheet = true }) {
-                        Icon(Icons.Outlined.Add, contentDescription = "Добавить")
+                        Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.cd_add))
                     }
                 },
                 colors = TopAppBarDefaults.largeTopAppBarColors(
@@ -76,12 +82,12 @@ fun ShoppingScreen(viewModel: ShoppingViewModel = koinViewModel()) {
         } else {
             LazyColumn(
                 contentPadding = PaddingValues(
-                    start  = 16.dp,
-                    end    = 16.dp,
-                    top    = padding.calculateTopPadding() + 8.dp,
-                    bottom = padding.calculateBottomPadding() + 16.dp,
+                    start  = dims.screenPadding,
+                    end    = dims.screenPadding,
+                    top    = padding.calculateTopPadding() + dims.sm,
+                    bottom = padding.calculateBottomPadding() + dims.screenPadding,
                 ),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(dims.itemGap),
             ) {
                 // Purchased block (amber container)
                 if (purchased.isNotEmpty()) {
@@ -126,11 +132,12 @@ fun ShoppingScreen(viewModel: ShoppingViewModel = koinViewModel()) {
 @Composable
 private fun PurchasedBlock(items: List<ShoppingItem>, onDistribute: (ShoppingItem) -> Unit) {
     val statusColors = LocalStatusColors.current
+    val dims = LocalDimens.current
     Surface(
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(dims.radiusLg),
         color = statusColors.expiringContainer,
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(dims.screenPadding)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier         = Modifier
@@ -161,7 +168,7 @@ private fun PurchasedBlock(items: List<ShoppingItem>, onDistribute: (ShoppingIte
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 8.dp),
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(dims.radiusSm),
                     color = MaterialTheme.colorScheme.surface,
                 ) {
                     Row(
@@ -170,7 +177,7 @@ private fun PurchasedBlock(items: List<ShoppingItem>, onDistribute: (ShoppingIte
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(item.name, style = MaterialTheme.typography.titleSmall)
-                            Text("${item.quantity.toInt()} шт", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(stringResource(R.string.qty_pieces, item.quantity.toInt().toString()), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         Button(
                             onClick = { onDistribute(item) },
@@ -191,8 +198,9 @@ private fun PurchasedBlock(items: List<ShoppingItem>, onDistribute: (ShoppingIte
 
 @Composable
 private fun ShopCard(item: ShoppingItem, onToggle: () -> Unit, onDelete: () -> Unit) {
+    val dims = LocalDimens.current
     Surface(
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(dims.radiusMd),
         color = MaterialTheme.colorScheme.surfaceContainer,
     ) {
         Row(
@@ -217,7 +225,7 @@ private fun ShopCard(item: ShoppingItem, onToggle: () -> Unit, onDelete: () -> U
             Column(modifier = Modifier.weight(1f)) {
                 Text(item.name, style = MaterialTheme.typography.titleMedium)
                 Text(
-                    "${item.quantity.toInt()} шт",
+                    stringResource(R.string.qty_pieces, item.quantity.toInt().toString()),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -276,7 +284,7 @@ private fun ShoppingEmptyState(modifier: Modifier = Modifier, onAdd: () -> Unit)
             Button(onClick = onAdd) {
                 Icon(Icons.Outlined.Add, null)
                 Spacer(Modifier.width(8.dp))
-                Text("Добавить препарат")
+                Text(stringResource(R.string.shopping_add_drug))
             }
         }
     }
@@ -289,14 +297,15 @@ private fun ShoppingEmptyState(modifier: Modifier = Modifier, onAdd: () -> Unit)
 private fun AddItemSheet(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
     var name by remember { mutableStateOf("") }
 
+    val dims = LocalDimens.current
     ModalBottomSheet(onDismissRequest = onDismiss) {
-        Column(modifier = Modifier.padding(24.dp)) {
-            Text("Добавить в покупки", style = MaterialTheme.typography.titleLarge)
+        Column(modifier = Modifier.padding(dims.xxl)) {
+            Text(stringResource(R.string.add_to_shopping_title), style = MaterialTheme.typography.titleLarge)
             Spacer(Modifier.height(16.dp))
             OutlinedTextField(
                 value         = name,
                 onValueChange = { name = it },
-                label         = { Text("Название препарата") },
+                label         = { Text(stringResource(R.string.shopping_item_name_label)) },
                 singleLine    = true,
                 modifier      = Modifier.fillMaxWidth(),
             )
@@ -306,7 +315,7 @@ private fun AddItemSheet(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
                 enabled  = name.isNotBlank(),
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text("Добавить")
+                Text(stringResource(R.string.action_add))
             }
             Spacer(Modifier.height(32.dp))
         }

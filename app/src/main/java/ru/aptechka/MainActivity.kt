@@ -25,6 +25,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import ru.aptechka.ui.navigation.Screen
+import ru.aptechka.ui.screens.add.AddDrugScreen
 import ru.aptechka.ui.screens.expiry.ExpiryScreen
 import ru.aptechka.ui.screens.kits.KitDetailScreen
 import ru.aptechka.ui.screens.kits.KitsScreen
@@ -118,6 +119,19 @@ private fun AppNavHost() {
                 val kitId = backStackEntry.arguments?.getLong("kitId") ?: return@composable
                 // Pass kit name/color/icon through savedStateHandle or re-query
                 KitDetailScreen(
+                    kitId         = kitId,
+                    navController = navController,
+                )
+            }
+
+            composable(
+                route     = Screen.AddDrug.route,
+                arguments = listOf(
+                    navArgument("kitId") { type = NavType.LongType },
+                ),
+            ) { backStackEntry ->
+                val kitId = backStackEntry.arguments?.getLong("kitId") ?: return@composable
+                AddDrugScreen(
                     kitId         = kitId,
                     navController = navController,
                 )

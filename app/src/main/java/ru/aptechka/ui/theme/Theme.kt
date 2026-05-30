@@ -92,6 +92,7 @@ fun AptechkaTheme(
     }
 
     val statusColors = if (darkTheme) DarkStatusColors else LightStatusColors
+    val formColors   = if (darkTheme) DarkFormColors   else LightFormColors
 
     val view = LocalView.current
     if (!view.isInEditMode) {
@@ -102,7 +103,11 @@ fun AptechkaTheme(
         }
     }
 
-    CompositionLocalProvider(LocalStatusColors provides statusColors) {
+    CompositionLocalProvider(
+        LocalStatusColors provides statusColors,
+        LocalFormColors provides formColors,
+        LocalDimens provides Dimens(),
+    ) {
         MaterialTheme(
             colorScheme = colorScheme,
             typography  = AptechkaTypography,

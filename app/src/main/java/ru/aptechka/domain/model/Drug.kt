@@ -41,5 +41,5 @@ data class UserDrugWithBatches(
 ) {
     val totalQuantity: Float get() = batches.filter { it.status != BatchStatus.EXPIRED }.sumOf { it.quantity.toDouble() }.toFloat()
     val nearestExpiry: Long? get() = batches.filter { it.status != BatchStatus.EXPIRED }.minOfOrNull { it.expirationDate }
-    val worstStatus: BatchStatus get() = batches.minOfOrNull { it.status.ordinal }?.let { BatchStatus.entries[it] } ?: BatchStatus.ACTIVE
+    val worstStatus: BatchStatus get() = batches.maxOfOrNull { it.status.ordinal }?.let { BatchStatus.entries[it] } ?: BatchStatus.ACTIVE
 }

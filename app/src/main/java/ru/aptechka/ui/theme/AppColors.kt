@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.Color
+import ru.aptechka.domain.model.FormKey
 
 // ── Status colors (fixed — never change with Material You dynamic theming) ────
 
@@ -60,6 +61,63 @@ private val pinkDark   = AccentPalette(Color(0xFFE2A2BD), Color(0xFF4F2842))
 private val tealDark   = AccentPalette(Color(0xFF87C5C2), Color(0xFF1F3D3B))
 private val amberDark  = AccentPalette(Color(0xFFE2C075), Color(0xFF3D2F0A))
 private val greyDark   = AccentPalette(Color(0xFFB5B1A6), Color(0xFF38362F))
+
+// ── Form-of-medicine tile colors (one accent per form, theme-swappable) ───────
+
+@Stable
+data class FormColors(
+    val tablet: Color,
+    val capsule: Color,
+    val syrup: Color,
+    val drops: Color,
+    val ointment: Color,
+    val injection: Color,
+    val spray: Color,
+    val patch: Color,
+    val suppository: Color,
+    val other: Color,
+) {
+    fun forForm(form: FormKey): Color = when (form) {
+        FormKey.TABLET      -> tablet
+        FormKey.CAPSULE     -> capsule
+        FormKey.SYRUP       -> syrup
+        FormKey.DROPS       -> drops
+        FormKey.OINTMENT    -> ointment
+        FormKey.INJECTION   -> injection
+        FormKey.SPRAY       -> spray
+        FormKey.PATCH       -> patch
+        FormKey.SUPPOSITORY -> suppository
+        FormKey.OTHER       -> other
+    }
+}
+
+val LightFormColors = FormColors(
+    tablet      = Color(0xFF4A7C59),
+    capsule     = Color(0xFF426EA3),
+    syrup       = Color(0xFFB57A14),
+    drops       = Color(0xFF4E6868),
+    ointment    = Color(0xFF836A47),
+    injection   = Color(0xFF6E5A9B),
+    spray       = Color(0xFF347D7D),
+    patch       = Color(0xFFA65082),
+    suppository = Color(0xFF6E6A60),
+    other       = Color(0xFF6E6A60),
+)
+
+val DarkFormColors = FormColors(
+    tablet      = Color(0xFF3E6B4B),
+    capsule     = Color(0xFF3A5E89),
+    syrup       = Color(0xFF9A6912),
+    drops       = Color(0xFF435A5A),
+    ointment    = Color(0xFF6F5A3C),
+    injection   = Color(0xFF5E4D85),
+    spray       = Color(0xFF2C6B6B),
+    patch       = Color(0xFF8E4570),
+    suppository = Color(0xFF5E5B52),
+    other       = Color(0xFF5E5B52),
+)
+
+val LocalFormColors = compositionLocalOf { LightFormColors }
 
 object KitColors {
     val keys = listOf("green", "blue", "orange", "violet", "pink", "teal", "amber", "grey")

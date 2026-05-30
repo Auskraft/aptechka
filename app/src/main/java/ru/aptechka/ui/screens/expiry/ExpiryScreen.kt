@@ -14,6 +14,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -22,6 +24,7 @@ import org.koin.androidx.compose.koinViewModel
 import ru.aptechka.R
 import ru.aptechka.domain.model.BatchStatus
 import ru.aptechka.domain.model.DrugBatch
+import ru.aptechka.ui.theme.LocalDimens
 import ru.aptechka.ui.theme.LocalStatusColors
 import java.text.SimpleDateFormat
 import java.util.*
@@ -46,10 +49,15 @@ fun ExpiryScreen(viewModel: ExpiryViewModel = koinViewModel()) {
     }
 
     val statusColors = LocalStatusColors.current
+    val dims = LocalDimens.current
+
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             LargeTopAppBar(
+                scrollBehavior = scrollBehavior,
                 title = {
                     Column {
                         Text(
@@ -59,12 +67,12 @@ fun ExpiryScreen(viewModel: ExpiryViewModel = koinViewModel()) {
                         val expiredCount  = uiState.expired.size
                         val expiringCount = uiState.expiring.size
                         if (expiredCount > 0 || expiringCount > 0) {
+                            val sub = listOfNotNull(
+                                stringResource(R.string.count_expired, expiredCount).takeIf { expiredCount > 0 },
+                                stringResource(R.string.count_soon, expiringCount).takeIf { expiringCount > 0 },
+                            ).joinToString(" · ")
                             Text(
-                                text  = buildString {
-                                    if (expiredCount > 0)  append("$expiredCount просрочено")
-                                    if (expiredCount > 0 && expiringCount > 0) append(" · ")
-                                    if (expiringCount > 0) append("$expiringCount скоро")
-                                },
+                                text  = sub,
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -121,12 +129,12 @@ fun ExpiryScreen(viewModel: ExpiryViewModel = koinViewModel()) {
             } else {
                 LazyColumn(
                     contentPadding = PaddingValues(
-                        start  = 16.dp,
-                        end    = 16.dp,
-                        top    = 12.dp,
-                        bottom = padding.calculateBottomPadding() + 16.dp,
+                        start  = dims.screenPadding,
+                        end    = dims.screenPadding,
+                        top    = dims.md,
+                        bottom = padding.calculateBottomPadding() + dims.screenPadding,
                     ),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(dims.itemGap),
                 ) {
                     items(currentList, key = { it.batch.id }) { ctx ->
                         BatchRow(
@@ -151,6 +159,7 @@ private fun BatchRow(
 ) {
     val batch        = ctx.batch
     val statusColors = LocalStatusColors.current
+    val dims         = LocalDimens.current
 
     val (statusFg, statusContainer) = when (batch.status) {
         BatchStatus.EXPIRED       -> statusColors.expiredFg  to statusColors.expiredContainer
@@ -160,20 +169,20 @@ private fun BatchRow(
 
     val daysDiff = ((batch.expirationDate - System.currentTimeMillis()) / 86_400_000L).toInt()
     val daysLabel = when {
-        daysDiff < 0  -> "истёк ${abs(daysDiff)} дней назад"
-        daysDiff == 0 -> "истекает сегодня"
-        daysDiff < 60 -> "через $daysDiff дн."
-        else          -> "через ${daysDiff / 30} мес."
+        daysDiff < 0  -> stringResource(R.string.expiry_expired, pluralStringResource(R.plurals.plural_days, abs(daysDiff), abs(daysDiff)))
+        daysDiff == 0 -> stringResource(R.string.expiry_today)
+        daysDiff < 60 -> stringResource(R.string.expiry_in_short, pluralStringResource(R.plurals.plural_days, daysDiff, daysDiff))
+        else          -> {
+            val months = daysDiff / 30
+            stringResource(R.string.expiry_in_short, pluralStringResource(R.plurals.plural_months, months, months))
+        }
     }
-
-    val sdf = remember { SimpleDateFormat("d MMM yy", Locale("ru")) }
-    val dateStr = sdf.format(Date(batch.expirationDate))
 
     val dayStr  = SimpleDateFormat("d", Locale("ru")).format(Date(batch.expirationDate))
     val monStr  = SimpleDateFormat("MMM yy", Locale("ru")).format(Date(batch.expirationDate))
 
     Surface(
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(dims.radiusMd),
         color = MaterialTheme.colorScheme.surfaceContainer,
     ) {
         Row(modifier = Modifier.height(IntrinsicSize.Min)) {
@@ -218,7 +227,7 @@ private fun BatchRow(
                     style = MaterialTheme.typography.titleMedium,
                 )
                 Text(
-                    text  = "${ctx.kit.name} · ${batch.quantity.toInt()} шт",
+                    text  = "${ctx.kit.name} · " + stringResource(R.string.qty_pieces, batch.quantity.toInt().toString()),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -242,7 +251,7 @@ private fun BatchRow(
                         leadingIcon = { Icon(Icons.Outlined.ShoppingCart, null) },
                     )
                     DropdownMenuItem(
-                        text        = { Text("Изменить срок") },
+                        text        = { Text(stringResource(R.string.edit_expiry)) },
                         onClick     = { expanded = false /* TODO */ },
                         leadingIcon = { Icon(Icons.Outlined.EditCalendar, null) },
                     )

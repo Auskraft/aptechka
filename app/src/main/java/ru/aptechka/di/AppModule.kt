@@ -7,6 +7,7 @@ import ru.aptechka.data.db.AptechkaDatabase
 import ru.aptechka.data.repository.DrugRepository
 import ru.aptechka.data.repository.KitRepository
 import ru.aptechka.data.repository.ShoppingRepository
+import ru.aptechka.ui.screens.add.AddDrugViewModel
 import ru.aptechka.ui.screens.expiry.ExpiryViewModel
 import ru.aptechka.ui.screens.kits.KitDetailViewModel
 import ru.aptechka.ui.screens.kits.KitsViewModel
@@ -31,6 +32,7 @@ val repositoryModule = module {
 val viewModelModule = module {
     viewModel { KitsViewModel(get(), get()) }
     viewModel { (kitId: Long) -> KitDetailViewModel(kitId, get(), get()) }
+    viewModel { (kitId: Long) -> AddDrugViewModel(kitId, get()) }
     viewModel { ExpiryViewModel(get(), get()) }
     viewModel { ShoppingViewModel(get()) }
 }

@@ -20,6 +20,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -33,6 +35,7 @@ import ru.aptechka.domain.model.Kit
 import ru.aptechka.domain.model.KitWithStats
 import ru.aptechka.ui.navigation.Screen
 import ru.aptechka.ui.theme.KitColors
+import ru.aptechka.ui.theme.LocalDimens
 import ru.aptechka.ui.theme.LocalStatusColors
 
 // ── Icon mapping ──────────────────────────────────────────────────────────────
@@ -53,19 +56,6 @@ fun kitIcon(key: String): ImageVector = when (key) {
     else       -> Icons.Outlined.MedicalServices
 }
 
-// ── Pluralization helpers ─────────────────────────────────────────────────────
-
-private fun pluralDrugs(n: Int): String {
-    val last = n % 10
-    val mod  = n % 100
-    return when {
-        mod in 11..14  -> "$n препаратов"
-        last == 1      -> "$n препарат"
-        last in 2..4   -> "$n препарата"
-        else           -> "$n препаратов"
-    }
-}
-
 // ── Screen ────────────────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -84,9 +74,13 @@ fun KitsScreen(
     val totalExpired  = kitsWithStats.sumOf { it.expiredCount }
     val totalExpiring = kitsWithStats.sumOf { it.expiringSoonCount }
 
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             LargeTopAppBar(
+                scrollBehavior = scrollBehavior,
                 title = {
                     Column {
                         Text(
@@ -94,12 +88,8 @@ fun KitsScreen(
                             style = MaterialTheme.typography.displayMedium,
                         )
                         if (kits.isNotEmpty()) {
-                            val sub = buildString {
-                                append(pluralDrugs(kits.size))
-                                // In future: total drug count across all kits
-                            }
                             Text(
-                                text  = sub,
+                                text  = pluralStringResource(R.plurals.plural_kits, kits.size, kits.size),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -108,7 +98,7 @@ fun KitsScreen(
                 },
                 actions = {
                     IconButton(onClick = { showSearch = true }) {
-                        Icon(Icons.Outlined.Search, contentDescription = "Поиск")
+                        Icon(Icons.Outlined.Search, contentDescription = stringResource(R.string.cd_search))
                     }
                 },
                 colors = TopAppBarDefaults.largeTopAppBarColors(
@@ -133,17 +123,18 @@ fun KitsScreen(
                 onCreate = { showCreateDialog = true },
             )
         } else {
+            val dims = LocalDimens.current
             val columns = if (kits.size <= 2) 1 else 2
             LazyVerticalGrid(
                 columns         = GridCells.Fixed(columns),
                 contentPadding  = PaddingValues(
-                    start  = 16.dp,
-                    end    = 16.dp,
-                    top    = padding.calculateTopPadding() + 8.dp,
+                    start  = dims.screenPadding,
+                    end    = dims.screenPadding,
+                    top    = padding.calculateTopPadding() + dims.sm,
                     bottom = padding.calculateBottomPadding() + 96.dp,
                 ),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement   = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(dims.cardGap),
+                verticalArrangement   = Arrangement.spacedBy(dims.cardGap),
             ) {
                 // Attention row
                 if (totalExpired > 0 || totalExpiring > 0) {
@@ -158,7 +149,7 @@ fun KitsScreen(
                         text     = stringResource(R.string.my_kits_header),
                         style    = MaterialTheme.typography.labelSmall,
                         color    = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 8.dp),
+                        modifier = Modifier.padding(horizontal = dims.xs, vertical = dims.sm),
                     )
                 }
 
@@ -193,7 +184,7 @@ fun KitsScreen(
     kitToDelete?.let { kit ->
         AlertDialog(
             onDismissRequest = { kitToDelete = null },
-            title = { Text("Удалить «${kit.name}»?") },
+            title = { Text(stringResource(R.string.delete_confirm_title, kit.name)) },
             text  = { Text(stringResource(R.string.delete_kit_confirm)) },
             confirmButton = {
                 TextButton(onClick = {
@@ -225,7 +216,7 @@ private fun AttentionRow(expired: Int, expiring: Int) {
         if (expired > 0) {
             AttentionCard(
                 count     = expired,
-                label     = "просрочено",
+                label     = stringResource(R.string.expired_plural),
                 fg        = statusColors.expiredFg,
                 container = statusColors.expiredContainer,
                 icon      = Icons.Outlined.Warning,
@@ -235,7 +226,7 @@ private fun AttentionRow(expired: Int, expiring: Int) {
         if (expiring > 0) {
             AttentionCard(
                 count     = expiring,
-                label     = "скоро истекут",
+                label     = stringResource(R.string.expiring_plural),
                 fg        = statusColors.expiringFg,
                 container = statusColors.expiringContainer,
                 icon      = Icons.Outlined.Schedule,
@@ -254,9 +245,10 @@ private fun AttentionCard(
     icon: ImageVector,
     modifier: Modifier = Modifier,
 ) {
+    val dims = LocalDimens.current
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(dims.radiusMd))
             .background(container)
             .padding(horizontal = 14.dp, vertical = 16.dp),
     ) {
@@ -302,11 +294,12 @@ private fun KitCard(
     val accent  = KitColors.get(kit.colorHex)
     val hasProb = kitWithStats.expiredCount > 0 || kitWithStats.expiringSoonCount > 0
     val statusColors = LocalStatusColors.current
+    val dims = LocalDimens.current
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
+            .clip(RoundedCornerShape(dims.radiusLg))
             .background(accent.container)
             .clickable(onClick = onClick)
             .padding(14.dp),
@@ -346,11 +339,11 @@ private fun KitCard(
                     }
                     DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                         DropdownMenuItem(
-                            text    = { Text("Переименовать") },
+                            text    = { Text(stringResource(R.string.rename)) },
                             onClick = { expanded = false /* TODO */ },
                         )
                         DropdownMenuItem(
-                            text    = { Text("Удалить", color = MaterialTheme.colorScheme.error) },
+                            text    = { Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error) },
                             onClick = { expanded = false; onDelete() },
                         )
                     }
@@ -379,18 +372,19 @@ private fun KitCard(
                     )
                     Spacer(Modifier.width(4.dp))
                     Text(
-                        text  = "всё в норме",
+                        text  = stringResource(R.string.all_ok),
                         style = MaterialTheme.typography.bodySmall,
                         color = accent.fg,
                     )
                 }
             } else {
                 Text(
-                    text  = buildString {
-                        if (kitWithStats.expiredCount > 0) append("${kitWithStats.expiredCount} просрочено")
-                        if (kitWithStats.expiredCount > 0 && kitWithStats.expiringSoonCount > 0) append(" · ")
-                        if (kitWithStats.expiringSoonCount > 0) append("${kitWithStats.expiringSoonCount} скоро")
-                    },
+                    text  = listOfNotNull(
+                        stringResource(R.string.count_expired, kitWithStats.expiredCount)
+                            .takeIf { kitWithStats.expiredCount > 0 },
+                        stringResource(R.string.count_soon, kitWithStats.expiringSoonCount)
+                            .takeIf { kitWithStats.expiringSoonCount > 0 },
+                    ).joinToString(" · "),
                     style = MaterialTheme.typography.bodySmall,
                     color = accent.fg,
                 )
@@ -401,9 +395,10 @@ private fun KitCard(
 
 @Composable
 private fun StatusBadge(count: Int, color: Color) {
+    val dims = LocalDimens.current
     Box(
         modifier         = Modifier
-            .clip(RoundedCornerShape(999.dp))
+            .clip(RoundedCornerShape(dims.radiusPill))
             .background(color)
             .padding(horizontal = 7.dp, vertical = 1.dp),
         contentAlignment = Alignment.Center,
@@ -420,13 +415,14 @@ private fun StatusBadge(count: Int, color: Color) {
 
 @Composable
 private fun AddKitCard(onClick: () -> Unit) {
+    val dims = LocalDimens.current
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
+            .clip(RoundedCornerShape(dims.radiusLg))
             .border(
                 BorderStroke(1.5.dp, MaterialTheme.colorScheme.outlineVariant),
-                RoundedCornerShape(20.dp),
+                RoundedCornerShape(dims.radiusLg),
             )
             .clickable(onClick = onClick)
             .padding(14.dp),
@@ -435,7 +431,7 @@ private fun AddKitCard(onClick: () -> Unit) {
             Box(
                 modifier         = Modifier
                     .size(44.dp)
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(dims.radiusSm))
                     .background(MaterialTheme.colorScheme.surfaceContainer),
                 contentAlignment = Alignment.Center,
             ) {
@@ -504,7 +500,7 @@ private fun KitsEmptyState(modifier: Modifier = Modifier, onCreate: () -> Unit) 
             Button(onClick = onCreate) {
                 Icon(Icons.Outlined.Add, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
-                Text("Создать аптечку")
+                Text(stringResource(R.string.create_kit))
             }
         }
     }
@@ -517,6 +513,7 @@ private fun CreateKitDialog(
     onConfirm: (String, String, String) -> Unit,
     onDismiss: () -> Unit,
 ) {
+    val dims = LocalDimens.current
     var name      by remember { mutableStateOf("") }
     var colorKey  by remember { mutableStateOf("green") }
     var iconKey   by remember { mutableStateOf("home") }
@@ -538,7 +535,7 @@ private fun CreateKitDialog(
                 )
 
                 // Color picker
-                Text("Цвет", style = MaterialTheme.typography.labelMedium)
+                Text(stringResource(R.string.picker_color), style = MaterialTheme.typography.labelMedium)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     colorKeys.forEach { key ->
                         val palette = KitColors.get(key)
@@ -558,14 +555,14 @@ private fun CreateKitDialog(
                 }
 
                 // Icon picker
-                Text("Иконка", style = MaterialTheme.typography.labelMedium)
+                Text(stringResource(R.string.picker_icon), style = MaterialTheme.typography.labelMedium)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     iconKeys.forEach { key ->
                         val accent = KitColors.get(colorKey)
                         Box(
                             modifier = Modifier
                                 .size(40.dp)
-                                .clip(RoundedCornerShape(12.dp))
+                                .clip(RoundedCornerShape(dims.radiusSm))
                                 .background(if (key == iconKey) accent.container else MaterialTheme.colorScheme.surfaceContainer)
                                 .clickable { iconKey = key },
                             contentAlignment = Alignment.Center,
