@@ -10,8 +10,33 @@ import kotlinx.coroutines.launch
 import ru.aptechka.data.repository.DrugRepository
 import ru.aptechka.data.repository.KitRepository
 import ru.aptechka.domain.model.BatchStatus
+import ru.aptechka.domain.model.DrugBatch
 import ru.aptechka.domain.model.Kit
 import ru.aptechka.domain.model.KitWithStats
+import ru.aptechka.domain.model.UserDrug
+
+/**
+ * Per-kit stats: drug count and expired/expiring batch counts scoped to each
+ * kit (batch → drug → kit). Pure → unit-testable.
+ */
+internal fun buildKitsWithStats(
+    kits: List<Kit>,
+    drugs: List<UserDrug>,
+    batches: List<DrugBatch>,
+): List<KitWithStats> {
+    val drugsByKit = drugs.groupBy { it.kitId }
+    val batchesByDrug = batches.groupBy { it.drugId }
+    return kits.map { kit ->
+        val kitDrugs = drugsByKit[kit.id].orEmpty()
+        val kitBatches = kitDrugs.flatMap { batchesByDrug[it.id].orEmpty() }
+        KitWithStats(
+            kit = kit,
+            totalDrugs = kitDrugs.size,
+            expiredCount = kitBatches.count { it.status == BatchStatus.EXPIRED },
+            expiringSoonCount = kitBatches.count { it.status == BatchStatus.EXPIRING_SOON },
+        )
+    }
+}
 
 class KitsViewModel(
     private val kitRepo: KitRepository,
@@ -20,15 +45,10 @@ class KitsViewModel(
 
     val kitsWithStats: StateFlow<List<KitWithStats>> = combine(
         kitRepo.observeAll(),
+        drugRepo.observeAllDrugs(),
         drugRepo.observeAllBatches(),
-    ) { kits, allBatches ->
-        kits.map { kit ->
-            // Count expired and expiring batches for this kit using drugId mapping would need
-            // extra DAO join — for MVP we count conservatively from all batches
-            val expired = allBatches.count { it.status == BatchStatus.EXPIRED }
-            val expiring = allBatches.count { it.status == BatchStatus.EXPIRING_SOON }
-            KitWithStats(kit, 0, expired, expiring)
-        }
+    ) { kits, drugs, batches ->
+        buildKitsWithStats(kits, drugs, batches)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     val kits: StateFlow<List<Kit>> = kitRepo.observeAll()
