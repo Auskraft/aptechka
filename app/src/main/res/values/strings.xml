@@ -114,6 +114,12 @@
         <item quantity="many">%d аптечек</item>
         <item quantity="other">%d аптечки</item>
     </plurals>
+    <plurals name="plural_drugs">
+        <item quantity="one">%d препарат</item>
+        <item quantity="few">%d препарата</item>
+        <item quantity="many">%d препаратов</item>
+        <item quantity="other">%d препарата</item>
+    </plurals>
     <plurals name="plural_batches">
         <item quantity="one">%d партия</item>
         <item quantity="few">%d партии</item>

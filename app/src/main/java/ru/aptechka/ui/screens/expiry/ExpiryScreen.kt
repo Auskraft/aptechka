@@ -139,7 +139,7 @@ fun ExpiryScreen(viewModel: ExpiryViewModel = koinViewModel()) {
                         BatchRow(
                             ctx       = ctx,
                             onDelete  = { viewModel.deleteBatch(ctx.batch) },
-                            onToCart  = { /* TODO */ },
+                            onToCart  = { viewModel.addToShopping(ctx) },
                         )
                     }
                 }

@@ -10,8 +10,10 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import ru.aptechka.data.repository.DrugRepository
 import ru.aptechka.data.repository.KitRepository
+import ru.aptechka.data.repository.ShoppingRepository
 import ru.aptechka.domain.model.DrugBatch
 import ru.aptechka.domain.model.Kit
+import ru.aptechka.domain.model.ShoppingItem
 import ru.aptechka.domain.model.UserDrug
 import ru.aptechka.domain.model.UserDrugWithBatches
 
@@ -19,6 +21,7 @@ class KitDetailViewModel(
     private val kitId: Long,
     private val drugRepo: DrugRepository,
     private val kitRepo: KitRepository,
+    private val shoppingRepo: ShoppingRepository,
 ) : ViewModel() {
 
     private val _kit = MutableStateFlow<Kit?>(null)
@@ -35,6 +38,12 @@ class KitDetailViewModel(
 
     fun deleteDrug(drug: UserDrug) {
         viewModelScope.launch { drugRepo.deleteDrug(drug) }
+    }
+
+    fun addToShopping(drug: UserDrug) {
+        viewModelScope.launch {
+            shoppingRepo.save(ShoppingItem(name = drug.name, unit = drug.unit, kitId = drug.kitId))
+        }
     }
 
     fun deleteBatch(batch: DrugBatch) {

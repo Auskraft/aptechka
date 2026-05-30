@@ -170,7 +170,7 @@ fun KitDetailScreen(
                     DrugRow(
                         drugWithBatches = dw,
                         onClick         = { navController.navigate(Screen.MedDetail.go(dw.drug.id)) },
-                        onToCart        = { /* TODO */ },
+                        onToCart        = { viewModel.addToShopping(dw.drug) },
                         onDelete        = { drugToDelete = dw },
                         modifier        = Modifier.padding(bottom = 8.dp),
                     )

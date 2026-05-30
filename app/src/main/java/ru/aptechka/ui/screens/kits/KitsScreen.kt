@@ -350,7 +350,7 @@ private fun KitCard(
                 }
             }
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(dims.md))
 
             Text(
                 text     = kit.name,
@@ -360,7 +360,19 @@ private fun KitCard(
                 overflow = TextOverflow.Ellipsis,
             )
 
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(dims.xs))
+
+            Text(
+                text  = pluralStringResource(
+                    R.plurals.plural_drugs,
+                    kitWithStats.totalDrugs,
+                    kitWithStats.totalDrugs,
+                ),
+                style = MaterialTheme.typography.bodyMedium,
+                color = accent.fg,
+            )
+
+            Spacer(Modifier.height(dims.xs))
 
             if (!hasProb) {
                 Row(verticalAlignment = Alignment.CenterVertically) {

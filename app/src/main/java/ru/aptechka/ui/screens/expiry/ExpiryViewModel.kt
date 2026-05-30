@@ -9,9 +9,11 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import ru.aptechka.data.repository.DrugRepository
 import ru.aptechka.data.repository.KitRepository
+import ru.aptechka.data.repository.ShoppingRepository
 import ru.aptechka.domain.model.BatchStatus
 import ru.aptechka.domain.model.DrugBatch
 import ru.aptechka.domain.model.Kit
+import ru.aptechka.domain.model.ShoppingItem
 import ru.aptechka.domain.model.UserDrug
 
 data class BatchWithContext(
@@ -57,6 +59,7 @@ internal fun buildExpiryUiState(
 class ExpiryViewModel(
     private val drugRepo: DrugRepository,
     kitRepo: KitRepository,
+    private val shoppingRepo: ShoppingRepository,
 ) : ViewModel() {
 
     val uiState: StateFlow<ExpiryUiState> = combine(
@@ -69,5 +72,13 @@ class ExpiryViewModel(
 
     fun deleteBatch(batch: DrugBatch) {
         viewModelScope.launch { drugRepo.deleteBatch(batch) }
+    }
+
+    fun addToShopping(ctx: BatchWithContext) {
+        viewModelScope.launch {
+            shoppingRepo.save(
+                ShoppingItem(name = ctx.drug.name, unit = ctx.drug.unit, kitId = ctx.kit.id),
+            )
+        }
     }
 }

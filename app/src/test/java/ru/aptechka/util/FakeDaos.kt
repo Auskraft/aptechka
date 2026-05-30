@@ -3,9 +3,11 @@ package ru.aptechka.util
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import ru.aptechka.data.db.dao.DrugBatchDao
+import ru.aptechka.data.db.dao.KitDao
 import ru.aptechka.data.db.dao.ShoppingDao
 import ru.aptechka.data.db.dao.UserDrugDao
 import ru.aptechka.data.db.entity.DrugBatchEntity
+import ru.aptechka.data.db.entity.KitEntity
 import ru.aptechka.data.db.entity.ShoppingItemEntity
 import ru.aptechka.data.db.entity.UserDrugEntity
 
@@ -46,6 +48,22 @@ class FakeDrugBatchDao : DrugBatchDao {
     override fun getAllBatches(): Flow<List<DrugBatchEntity>> = flowOf(emptyList())
     override suspend fun updateBatch(batch: DrugBatchEntity) { updated += batch }
     override suspend fun deleteBatch(batch: DrugBatchEntity) { deleted += batch }
+}
+
+class FakeKitDao : KitDao {
+    val inserted = mutableListOf<KitEntity>()
+    private var nextId = 1L
+
+    override fun getAllKits(): Flow<List<KitEntity>> = flowOf(emptyList())
+    override suspend fun getKitById(id: Long): KitEntity? = inserted.find { it.id == id }
+    override suspend fun insertKit(kit: KitEntity): Long {
+        val id = nextId++
+        inserted += kit.copy(id = id)
+        return id
+    }
+    override suspend fun updateKit(kit: KitEntity) = Unit
+    override suspend fun deleteKit(kit: KitEntity) = Unit
+    override suspend fun getKitCount(): Int = inserted.size
 }
 
 class FakeShoppingDao : ShoppingDao {
