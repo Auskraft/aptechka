@@ -187,6 +187,19 @@
     <string name="snack_batch_deleted">Партия удалена</string>
     <string name="snack_batch_added">Партия добавлена</string>
 
+    <!-- Scanner -->
+    <string name="scan_hint">Наведите камеру на штрихкод</string>
+    <string name="scan_permission_rationale">Нужен доступ к камере, чтобы сканировать штрихкоды препаратов</string>
+    <string name="scan_grant_permission">Разрешить камеру</string>
+    <string name="scan_found_title">Препарат распознан</string>
+    <string name="scan_not_found_title">Препарат не найден в базе</string>
+    <string name="scan_not_found_body">Можно заполнить данные вручную.</string>
+    <string name="scan_fill_manually">Заполнить вручную</string>
+    <string name="scan_retry">Попробовать снова</string>
+    <string name="scan_continue">Продолжить</string>
+    <string name="scan_not_it">Не он</string>
+    <string name="scan_close">Закрыть</string>
+
     <!-- Common -->
     <string name="save">Сохранить</string>
     <string name="cancel">Отмена</string>

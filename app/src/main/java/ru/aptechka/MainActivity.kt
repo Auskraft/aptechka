@@ -28,6 +28,7 @@ import ru.aptechka.ui.navigation.Screen
 import ru.aptechka.ui.screens.add.AddDrugScreen
 import ru.aptechka.ui.screens.expiry.ExpiryScreen
 import ru.aptechka.ui.screens.meddetail.MedDetailScreen
+import ru.aptechka.ui.screens.scanner.ScannerScreen
 import ru.aptechka.ui.screens.kits.KitDetailScreen
 import ru.aptechka.ui.screens.kits.KitsScreen
 import ru.aptechka.ui.screens.settings.SettingsScreen
@@ -147,6 +148,19 @@ private fun AppNavHost() {
                 val drugId = backStackEntry.arguments?.getLong("drugId") ?: return@composable
                 MedDetailScreen(
                     drugId        = drugId,
+                    navController = navController,
+                )
+            }
+
+            composable(
+                route     = Screen.Scanner.route,
+                arguments = listOf(
+                    navArgument("kitId") { type = NavType.LongType },
+                ),
+            ) { backStackEntry ->
+                val kitId = backStackEntry.arguments?.getLong("kitId") ?: return@composable
+                ScannerScreen(
+                    kitId         = kitId,
                     navController = navController,
                 )
             }

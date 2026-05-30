@@ -128,7 +128,10 @@ fun KitDetailScreen(
                         FabMenuItem(
                             label   = stringResource(R.string.scan),
                             icon    = Icons.Outlined.QrCodeScanner,
-                            onClick = { showFabMenu = false /* TODO: scanner */ },
+                            onClick = {
+                                showFabMenu = false
+                                navController.navigate(Screen.Scanner.go(kitId))
+                            },
                         )
                         FabMenuItem(
                             label   = stringResource(R.string.manual),

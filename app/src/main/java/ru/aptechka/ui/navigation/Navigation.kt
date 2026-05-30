@@ -11,6 +11,9 @@ sealed class Screen(val route: String) {
     object AddDrug    : Screen("add_drug/{kitId}") {
         fun go(kitId: Long) = "add_drug/$kitId"
     }
+    object Scanner    : Screen("scanner/{kitId}") {
+        fun go(kitId: Long) = "scanner/$kitId"
+    }
     object Expiry     : Screen("expiry")
     object Shopping   : Screen("shopping")
     object Settings   : Screen("settings")
