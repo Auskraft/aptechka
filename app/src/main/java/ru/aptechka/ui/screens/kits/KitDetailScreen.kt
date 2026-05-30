@@ -155,6 +155,7 @@ fun KitDetailScreen(
         },
         containerColor = MaterialTheme.colorScheme.background,
     ) { padding ->
+        Box(Modifier.fillMaxSize()) {
         LazyColumn(
             contentPadding = PaddingValues(
                 start  = dims.screenPadding,
@@ -203,17 +204,18 @@ fun KitDetailScreen(
                 }
             }
         }
-    }
 
-    // Dismiss FAB menu on back-area tap
-    if (showFabMenu) {
-        Box(
-            Modifier
-                .fillMaxSize()
-                .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) {
-                    showFabMenu = false
-                }
-        )
+            // Dismiss FAB menu on back-area tap (below the FAB, above content)
+            if (showFabMenu) {
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) {
+                            showFabMenu = false
+                        },
+                )
+            }
+        }
     }
 
     drugToDelete?.let { dw ->
