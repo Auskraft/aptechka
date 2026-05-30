@@ -23,6 +23,8 @@ import org.koin.androidx.compose.koinViewModel
 import ru.aptechka.R
 import ru.aptechka.domain.model.BatchStatus
 import ru.aptechka.domain.model.DrugBatch
+import ru.aptechka.ui.common.SwipeAction
+import ru.aptechka.ui.common.SwipeRow
 import ru.aptechka.ui.common.rememberMessageSnackbarHostState
 import ru.aptechka.ui.forms.expiryLabel
 import ru.aptechka.ui.theme.LocalDimens
@@ -139,11 +141,28 @@ fun ExpiryScreen(viewModel: ExpiryViewModel = koinViewModel()) {
                     verticalArrangement = Arrangement.spacedBy(dims.itemGap),
                 ) {
                     items(currentList, key = { it.batch.id }) { ctx ->
-                        BatchRow(
-                            ctx       = ctx,
-                            onDelete  = { viewModel.deleteBatch(ctx.batch) },
-                            onToCart  = { viewModel.addToShopping(ctx) },
-                        )
+                        SwipeRow(
+                            startToEnd = SwipeAction(
+                                icon = Icons.Outlined.AddShoppingCart,
+                                container = MaterialTheme.colorScheme.primary,
+                                iconTint = MaterialTheme.colorScheme.onPrimary,
+                                dismiss = false,
+                                onAction = { viewModel.addToShopping(ctx) },
+                            ),
+                            endToStart = SwipeAction(
+                                icon = Icons.Outlined.Delete,
+                                container = statusColors.expiredFg,
+                                iconTint = Color.White,
+                                dismiss = true,
+                                onAction = { viewModel.deleteBatch(ctx.batch) },
+                            ),
+                        ) {
+                            BatchRow(
+                                ctx       = ctx,
+                                onDelete  = { viewModel.deleteBatch(ctx.batch) },
+                                onToCart  = { viewModel.addToShopping(ctx) },
+                            )
+                        }
                     }
                 }
             }

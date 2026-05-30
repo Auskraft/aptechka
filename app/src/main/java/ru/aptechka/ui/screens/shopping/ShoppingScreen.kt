@@ -24,6 +24,8 @@ import androidx.compose.ui.unit.dp
 import org.koin.androidx.compose.koinViewModel
 import ru.aptechka.R
 import ru.aptechka.domain.model.ShoppingItem
+import ru.aptechka.ui.common.SwipeAction
+import ru.aptechka.ui.common.SwipeRow
 import ru.aptechka.ui.common.rememberMessageSnackbarHostState
 import ru.aptechka.ui.theme.LocalDimens
 import ru.aptechka.ui.theme.LocalStatusColors
@@ -36,6 +38,7 @@ fun ShoppingScreen(viewModel: ShoppingViewModel = koinViewModel()) {
     var showAddSheet by remember { mutableStateOf(false) }
 
     val dims = LocalDimens.current
+    val statusColors = LocalStatusColors.current
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val snackbarHostState = rememberMessageSnackbarHostState(viewModel.snackbar.messages)
@@ -108,11 +111,28 @@ fun ShoppingScreen(viewModel: ShoppingViewModel = koinViewModel()) {
                         SectionHeader("${stringResource(R.string.to_buy_header)} (${toBuy.size})")
                     }
                     items(toBuy, key = { it.id }) { item ->
-                        ShopCard(
-                            item      = item,
-                            onToggle  = { viewModel.togglePurchased(item) },
-                            onDelete  = { viewModel.deleteItem(item) },
-                        )
+                        SwipeRow(
+                            startToEnd = SwipeAction(
+                                icon = Icons.Outlined.Check,
+                                container = MaterialTheme.colorScheme.primary,
+                                iconTint = MaterialTheme.colorScheme.onPrimary,
+                                dismiss = true,
+                                onAction = { viewModel.togglePurchased(item) },
+                            ),
+                            endToStart = SwipeAction(
+                                icon = Icons.Outlined.Delete,
+                                container = statusColors.expiredFg,
+                                iconTint = Color.White,
+                                dismiss = true,
+                                onAction = { viewModel.deleteItem(item) },
+                            ),
+                        ) {
+                            ShopCard(
+                                item      = item,
+                                onToggle  = { viewModel.togglePurchased(item) },
+                                onDelete  = { viewModel.deleteItem(item) },
+                            )
+                        }
                     }
                 }
             }

@@ -33,6 +33,8 @@ import ru.aptechka.R
 import ru.aptechka.ui.navigation.Screen
 import ru.aptechka.domain.model.BatchStatus
 import ru.aptechka.domain.model.UserDrugWithBatches
+import ru.aptechka.ui.common.SwipeAction
+import ru.aptechka.ui.common.SwipeRow
 import ru.aptechka.ui.common.rememberMessageSnackbarHostState
 import ru.aptechka.ui.forms.Forms
 import ru.aptechka.ui.forms.expiryLabel
@@ -62,6 +64,7 @@ fun KitDetailScreen(
 
     val drugs by viewModel.drugs.collectAsState()
     val dims = LocalDimens.current
+    val statusColors = LocalStatusColors.current
     val snackbarHostState = rememberMessageSnackbarHostState(viewModel.snackbar.messages)
     var sortMode by remember { mutableStateOf(SortMode.EXPIRY) }
     var showFabMenu by remember { mutableStateOf(false) }
@@ -170,13 +173,30 @@ fun KitDetailScreen(
                 item { KitEmptyState() }
             } else {
                 items(sorted, key = { it.drug.id }) { dw ->
-                    DrugRow(
-                        drugWithBatches = dw,
-                        onClick         = { navController.navigate(Screen.MedDetail.go(dw.drug.id)) },
-                        onToCart        = { viewModel.addToShopping(dw.drug) },
-                        onDelete        = { drugToDelete = dw },
-                        modifier        = Modifier.padding(bottom = 8.dp),
-                    )
+                    SwipeRow(
+                        startToEnd = SwipeAction(
+                            icon = Icons.Outlined.AddShoppingCart,
+                            container = MaterialTheme.colorScheme.primary,
+                            iconTint = MaterialTheme.colorScheme.onPrimary,
+                            dismiss = false,
+                            onAction = { viewModel.addToShopping(dw.drug) },
+                        ),
+                        endToStart = SwipeAction(
+                            icon = Icons.Outlined.Delete,
+                            container = statusColors.expiredFg,
+                            iconTint = Color.White,
+                            dismiss = false,
+                            onAction = { drugToDelete = dw },
+                        ),
+                        modifier = Modifier.padding(bottom = dims.itemGap),
+                    ) {
+                        DrugRow(
+                            drugWithBatches = dw,
+                            onClick         = { navController.navigate(Screen.MedDetail.go(dw.drug.id)) },
+                            onToCart        = { viewModel.addToShopping(dw.drug) },
+                            onDelete        = { drugToDelete = dw },
+                        )
+                    }
                 }
             }
         }
