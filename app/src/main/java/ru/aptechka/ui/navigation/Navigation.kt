@@ -8,8 +8,8 @@ sealed class Screen(val route: String) {
     object MedDetail  : Screen("med/{drugId}") {
         fun go(drugId: Long) = "med/$drugId"
     }
-    object AddDrug    : Screen("add_drug/{kitId}") {
-        fun go(kitId: Long) = "add_drug/$kitId"
+    object AddDrug    : Screen("add_drug/{kitId}?catalogId={catalogId}") {
+        fun go(kitId: Long, catalogId: Long = -1L) = "add_drug/$kitId?catalogId=$catalogId"
     }
     object Scanner    : Screen("scanner/{kitId}") {
         fun go(kitId: Long) = "scanner/$kitId"

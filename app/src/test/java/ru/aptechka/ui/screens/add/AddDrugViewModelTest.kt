@@ -29,6 +29,7 @@ class AddDrugViewModelTest {
         val batchDao = FakeDrugBatchDao()
         val vm = AddDrugViewModel(
             kitId = 7,
+            catalogId = -1L,
             drugRepo = DrugRepository(drugDao, batchDao),
             catalogRepo = CatalogRepository(FakeCatalogDrugDao()),
         )
@@ -63,6 +64,7 @@ class AddDrugViewModelTest {
         val batchDao = FakeDrugBatchDao()
         val vm = AddDrugViewModel(
             kitId = 7,
+            catalogId = -1L,
             drugRepo = DrugRepository(drugDao, batchDao),
             catalogRepo = CatalogRepository(FakeCatalogDrugDao()),
         )

@@ -38,7 +38,7 @@ val repositoryModule = module {
 val viewModelModule = module {
     viewModel { KitsViewModel(get(), get()) }
     viewModel { (kitId: Long) -> KitDetailViewModel(kitId, get(), get(), get()) }
-    viewModel { (kitId: Long) -> AddDrugViewModel(kitId, get(), get()) }
+    viewModel { (kitId: Long, catalogId: Long) -> AddDrugViewModel(kitId, catalogId, get(), get()) }
     viewModel { (drugId: Long) -> MedDetailViewModel(drugId, get(), get()) }
     viewModel { ExpiryViewModel(get(), get(), get()) }
     viewModel { ShoppingViewModel(get()) }

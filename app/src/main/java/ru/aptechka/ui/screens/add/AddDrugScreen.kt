@@ -38,8 +38,9 @@ import java.util.Locale
 @Composable
 fun AddDrugScreen(
     kitId: Long,
+    catalogId: Long = -1L,
     navController: NavController,
-    viewModel: AddDrugViewModel = koinViewModel(parameters = { parametersOf(kitId) }),
+    viewModel: AddDrugViewModel = koinViewModel(parameters = { parametersOf(kitId, catalogId) }),
 ) {
     val state by viewModel.state.collectAsState()
     val saved by viewModel.saved.collectAsState()

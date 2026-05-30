@@ -130,11 +130,14 @@ private fun AppNavHost() {
                 route     = Screen.AddDrug.route,
                 arguments = listOf(
                     navArgument("kitId") { type = NavType.LongType },
+                    navArgument("catalogId") { type = NavType.LongType; defaultValue = -1L },
                 ),
             ) { backStackEntry ->
                 val kitId = backStackEntry.arguments?.getLong("kitId") ?: return@composable
+                val catalogId = backStackEntry.arguments?.getLong("catalogId") ?: -1L
                 AddDrugScreen(
                     kitId         = kitId,
+                    catalogId     = catalogId,
                     navController = navController,
                 )
             }

@@ -111,6 +111,9 @@ interface CatalogDrugDao {
     @Query("SELECT * FROM catalog_drugs WHERE barcode = :barcode LIMIT 1")
     suspend fun getByBarcode(barcode: String): CatalogDrugEntity?
 
+    @Query("SELECT * FROM catalog_drugs WHERE id = :id")
+    suspend fun getById(id: Long): CatalogDrugEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(drugs: List<CatalogDrugEntity>)
 }

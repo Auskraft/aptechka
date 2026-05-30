@@ -39,9 +39,18 @@ data class AddDrugState(
 
 class AddDrugViewModel(
     private val kitId: Long,
+    private val catalogId: Long,
     private val drugRepo: DrugRepository,
     private val catalogRepo: CatalogRepository,
 ) : ViewModel() {
+
+    init {
+        if (catalogId > 0) {
+            viewModelScope.launch {
+                catalogRepo.getById(catalogId)?.let { applyCatalog(it) }
+            }
+        }
+    }
 
     private val _state = MutableStateFlow(AddDrugState())
     val state: StateFlow<AddDrugState> = _state.asStateFlow()

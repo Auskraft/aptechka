@@ -32,8 +32,9 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
-import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.text.TextRecognition
+import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import org.koin.androidx.compose.koinViewModel
 import ru.aptechka.R
 import ru.aptechka.ui.forms.Forms
@@ -69,17 +70,22 @@ fun ScannerScreen(
         navController.navigate(Screen.AddDrug.go(kitId))
     }
 
+    fun openPrefilledAdd(catalogId: Long) {
+        navController.popBackStack()
+        navController.navigate(Screen.AddDrug.go(kitId, catalogId))
+    }
+
     Box(Modifier.fillMaxSize().background(Color.Black)) {
         if (hasPermission) {
             CameraPreview(
-                onBarcode = viewModel::onBarcodeScanned,
+                onText = viewModel::onTextRecognized,
                 modifier = Modifier.fillMaxSize(),
             )
-            if (result == null) ScannerOverlay()
+            if (result == null) ScannerOverlay(onManual = { openManualAdd() })
         } else {
             PermissionRationale(
                 onRequest = { launcher.launch(Manifest.permission.CAMERA) },
-                onManual = ::openManualAdd,
+                onManual = { openManualAdd() },
             )
         }
 
@@ -96,19 +102,18 @@ fun ScannerScreen(
     }
 
     result?.let { res ->
-        ResultSheet(
+        FoundSheet(
             result = res,
-            onManual = ::openManualAdd,
-            onContinue = ::openManualAdd, // TODO: prefill from catalog match once catalog is seeded
+            onContinue = { openPrefilledAdd(res.match.id) },
             onRetry = { viewModel.reset() },
         )
     }
 }
 
-// ── Camera preview + ML Kit barcode analysis ──────────────────────────────────
+// ── Camera preview + ML Kit text recognition ──────────────────────────────────
 
 @Composable
-private fun CameraPreview(onBarcode: (String) -> Unit, modifier: Modifier = Modifier) {
+private fun CameraPreview(onText: (String) -> Unit, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val previewView = remember { PreviewView(context) }
@@ -116,7 +121,7 @@ private fun CameraPreview(onBarcode: (String) -> Unit, modifier: Modifier = Modi
     DisposableEffect(Unit) {
         val future = ProcessCameraProvider.getInstance(context)
         var provider: ProcessCameraProvider? = null
-        val analyzer = BarcodeAnalyzer(onBarcode)
+        val analyzer = TextAnalyzer(onText)
         future.addListener({
             provider = future.get()
             val preview = Preview.Builder().build().also {
@@ -146,8 +151,8 @@ private fun CameraPreview(onBarcode: (String) -> Unit, modifier: Modifier = Modi
     androidx.compose.ui.viewinterop.AndroidView(factory = { previewView }, modifier = modifier)
 }
 
-private class BarcodeAnalyzer(private val onBarcode: (String) -> Unit) : ImageAnalysis.Analyzer {
-    private val scanner = BarcodeScanning.getClient()
+private class TextAnalyzer(private val onText: (String) -> Unit) : ImageAnalysis.Analyzer {
+    private val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
 
     @OptIn(ExperimentalGetImage::class)
     override fun analyze(image: ImageProxy) {
@@ -157,24 +162,24 @@ private class BarcodeAnalyzer(private val onBarcode: (String) -> Unit) : ImageAn
             return
         }
         val input = InputImage.fromMediaImage(media, image.imageInfo.rotationDegrees)
-        scanner.process(input)
-            .addOnSuccessListener { barcodes ->
-                barcodes.firstOrNull()?.rawValue?.let(onBarcode)
+        recognizer.process(input)
+            .addOnSuccessListener { visionText ->
+                if (visionText.text.isNotBlank()) onText(visionText.text)
             }
             .addOnCompleteListener { image.close() }
     }
 
-    fun close() = scanner.close()
+    fun close() = recognizer.close()
 }
 
 // ── Overlay ───────────────────────────────────────────────────────────────────
 
 @Composable
-private fun BoxScope.ScannerOverlay() {
+private fun BoxScope.ScannerOverlay(onManual: () -> Unit) {
     Box(
         modifier = Modifier
             .align(Alignment.Center)
-            .size(264.dp, 220.dp)
+            .size(300.dp, 150.dp)
             .border(2.dp, Color.White, RoundedCornerShape(16.dp)),
     )
     Surface(
@@ -190,6 +195,22 @@ private fun BoxScope.ScannerOverlay() {
             color = Color.White,
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+        )
+    }
+    Surface(
+        onClick = onManual,
+        color = Color.Black.copy(alpha = 0.5f),
+        shape = RoundedCornerShape(999.dp),
+        modifier = Modifier
+            .align(Alignment.BottomCenter)
+            .navigationBarsPadding()
+            .padding(bottom = 32.dp),
+    ) {
+        Text(
+            text = stringResource(R.string.scan_fill_manually),
+            color = Color.White,
+            style = MaterialTheme.typography.labelLarge,
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
         )
     }
 }
@@ -221,49 +242,44 @@ private fun BoxScope.PermissionRationale(onRequest: () -> Unit, onManual: () -> 
     }
 }
 
-// ── Result bottom sheet ───────────────────────────────────────────────────────
+// ── Found bottom sheet ────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ResultSheet(
-    result: ScanResult,
-    onManual: () -> Unit,
-    onContinue: () -> Unit,
-    onRetry: () -> Unit,
-) {
+private fun FoundSheet(result: ScanResult, onContinue: () -> Unit, onRetry: () -> Unit) {
     val dims = LocalDimens.current
+    val match = result.match
     ModalBottomSheet(onDismissRequest = onRetry) {
         Column(
             modifier = Modifier.padding(dims.xxl).fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(dims.md),
         ) {
-            val match = result.match
-            if (match != null) {
-                Text(stringResource(R.string.scan_found_title), style = MaterialTheme.typography.titleLarge)
-                Text(
-                    text = "${match.name} · ${Forms.label(match.form)}",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Button(onClick = onContinue, modifier = Modifier.fillMaxWidth()) {
-                    Text(stringResource(R.string.scan_continue))
+            Text(stringResource(R.string.scan_found_title), style = MaterialTheme.typography.titleLarge)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(RoundedCornerShape(dims.radiusSm))
+                        .background(Forms.color(match.form)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(Forms.icon(match.form), null, tint = Color.White, modifier = Modifier.size(24.dp))
                 }
-                TextButton(onClick = onRetry, modifier = Modifier.fillMaxWidth()) {
-                    Text(stringResource(R.string.scan_not_it))
+                Spacer(Modifier.width(dims.md))
+                Column(Modifier.weight(1f)) {
+                    Text(match.name, style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        "${Forms.label(match.form)} · ${Forms.label(match.category)}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
-            } else {
-                Text(stringResource(R.string.scan_not_found_title), style = MaterialTheme.typography.titleLarge)
-                Text(
-                    text = stringResource(R.string.scan_not_found_body),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Button(onClick = onManual, modifier = Modifier.fillMaxWidth()) {
-                    Text(stringResource(R.string.scan_fill_manually))
-                }
-                TextButton(onClick = onRetry, modifier = Modifier.fillMaxWidth()) {
-                    Text(stringResource(R.string.scan_retry))
-                }
+            }
+            Button(onClick = onContinue, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.scan_continue))
+            }
+            TextButton(onClick = onRetry, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.scan_not_it))
             }
             Spacer(Modifier.height(dims.sm))
         }
