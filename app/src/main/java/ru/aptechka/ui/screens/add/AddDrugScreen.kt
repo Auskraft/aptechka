@@ -20,11 +20,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import ru.aptechka.R
+import ru.aptechka.domain.model.CatalogDrug
 import ru.aptechka.domain.model.CategoryKey
 import ru.aptechka.domain.model.FormKey
 import ru.aptechka.ui.forms.Forms
@@ -46,6 +48,8 @@ fun AddDrugScreen(
         if (saved) navController.popBackStack()
     }
 
+    val suggestions by viewModel.suggestions.collectAsState()
+    var showSuggestions by remember { mutableStateOf(false) }
     var showFormSheet by remember { mutableStateOf(false) }
     var showDatePicker by remember { mutableStateOf(false) }
 
@@ -85,11 +89,24 @@ fun AddDrugScreen(
             SectionGroup(title = stringResource(R.string.section_main)) {
                 OutlinedTextField(
                     value = state.name,
-                    onValueChange = viewModel::onName,
+                    onValueChange = {
+                        viewModel.onName(it)
+                        showSuggestions = true
+                    },
                     label = { Text(stringResource(R.string.field_drug_name)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
+
+                if (showSuggestions && suggestions.isNotEmpty()) {
+                    CatalogSuggestions(
+                        suggestions = suggestions,
+                        onPick = {
+                            viewModel.applyCatalog(it)
+                            showSuggestions = false
+                        },
+                    )
+                }
 
                 // Форма выпуска picker
                 FieldRow(
@@ -325,6 +342,57 @@ private fun FormPickerSheet(
             }
         }
         Spacer(Modifier.height(16.dp))
+    }
+}
+
+// ── Catalog autocomplete suggestions ─────────────────────────────────────────
+
+@Composable
+private fun CatalogSuggestions(suggestions: List<CatalogDrug>, onPick: (CatalogDrug) -> Unit) {
+    val dims = LocalDimens.current
+    Surface(
+        shape = RoundedCornerShape(dims.radiusSm),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        tonalElevation = 3.dp,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column {
+            suggestions.take(6).forEach { drug ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onPick(drug) }
+                        .padding(horizontal = dims.lg, vertical = dims.md),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(RoundedCornerShape(dims.radiusXs))
+                            .background(Forms.color(drug.form)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(Forms.icon(drug.form), null, tint = Color.White, modifier = Modifier.size(18.dp))
+                    }
+                    Spacer(Modifier.width(dims.md))
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            drug.name,
+                            style = MaterialTheme.typography.titleSmall,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Text(
+                            "${Forms.label(drug.form)} · ${Forms.label(drug.category)}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 

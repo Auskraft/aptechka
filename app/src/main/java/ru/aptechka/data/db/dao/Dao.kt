@@ -102,8 +102,11 @@ interface ReminderDao {
 
 @Dao
 interface CatalogDrugDao {
-    @Query("SELECT * FROM catalog_drugs WHERE name LIKE '%' || :query || '%' LIMIT 50")
+    @Query("SELECT * FROM catalog_drugs WHERE name LIKE '%' || :query || '%' OR internationalName LIKE '%' || :query || '%' ORDER BY name LIMIT 30")
     suspend fun searchCatalog(query: String): List<CatalogDrugEntity>
+
+    @Query("SELECT COUNT(*) FROM catalog_drugs")
+    suspend fun count(): Int
 
     @Query("SELECT * FROM catalog_drugs WHERE barcode = :barcode LIMIT 1")
     suspend fun getByBarcode(barcode: String): CatalogDrugEntity?

@@ -2,10 +2,12 @@ package ru.aptechka.util
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
+import ru.aptechka.data.db.dao.CatalogDrugDao
 import ru.aptechka.data.db.dao.DrugBatchDao
 import ru.aptechka.data.db.dao.KitDao
 import ru.aptechka.data.db.dao.ShoppingDao
 import ru.aptechka.data.db.dao.UserDrugDao
+import ru.aptechka.data.db.entity.CatalogDrugEntity
 import ru.aptechka.data.db.entity.DrugBatchEntity
 import ru.aptechka.data.db.entity.KitEntity
 import ru.aptechka.data.db.entity.ShoppingItemEntity
@@ -64,6 +66,14 @@ class FakeKitDao : KitDao {
     override suspend fun updateKit(kit: KitEntity) = Unit
     override suspend fun deleteKit(kit: KitEntity) = Unit
     override suspend fun getKitCount(): Int = inserted.size
+}
+
+class FakeCatalogDrugDao : CatalogDrugDao {
+    val inserted = mutableListOf<CatalogDrugEntity>()
+    override suspend fun searchCatalog(query: String): List<CatalogDrugEntity> = emptyList()
+    override suspend fun getByBarcode(barcode: String): CatalogDrugEntity? = null
+    override suspend fun insertAll(drugs: List<CatalogDrugEntity>) { inserted += drugs }
+    override suspend fun count(): Int = inserted.size
 }
 
 class FakeShoppingDao : ShoppingDao {

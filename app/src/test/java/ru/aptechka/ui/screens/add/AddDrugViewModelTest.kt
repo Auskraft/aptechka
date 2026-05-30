@@ -8,9 +8,11 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import ru.aptechka.data.repository.CatalogRepository
 import ru.aptechka.data.repository.DrugRepository
 import ru.aptechka.domain.model.CategoryKey
 import ru.aptechka.domain.model.FormKey
+import ru.aptechka.util.FakeCatalogDrugDao
 import ru.aptechka.util.FakeDrugBatchDao
 import ru.aptechka.util.FakeUserDrugDao
 import ru.aptechka.util.MainDispatcherRule
@@ -25,7 +27,11 @@ class AddDrugViewModelTest {
     fun `save inserts drug and its first batch then flags saved`() = runTest(mainRule.dispatcher) {
         val drugDao = FakeUserDrugDao()
         val batchDao = FakeDrugBatchDao()
-        val vm = AddDrugViewModel(kitId = 7, drugRepo = DrugRepository(drugDao, batchDao))
+        val vm = AddDrugViewModel(
+            kitId = 7,
+            drugRepo = DrugRepository(drugDao, batchDao),
+            catalogRepo = CatalogRepository(FakeCatalogDrugDao()),
+        )
 
         vm.onName("Нурофен")
         vm.onForm(FormKey.SYRUP)
@@ -55,7 +61,11 @@ class AddDrugViewModelTest {
     fun `save is a no-op when state is invalid`() = runTest(mainRule.dispatcher) {
         val drugDao = FakeUserDrugDao()
         val batchDao = FakeDrugBatchDao()
-        val vm = AddDrugViewModel(kitId = 7, drugRepo = DrugRepository(drugDao, batchDao))
+        val vm = AddDrugViewModel(
+            kitId = 7,
+            drugRepo = DrugRepository(drugDao, batchDao),
+            catalogRepo = CatalogRepository(FakeCatalogDrugDao()),
+        )
 
         vm.onName("   ") // blank, no date
         vm.save()

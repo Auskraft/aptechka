@@ -3,6 +3,7 @@ package ru.aptechka.di
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
+import ru.aptechka.data.CatalogSeeder
 import ru.aptechka.data.db.AptechkaDatabase
 import ru.aptechka.data.repository.CatalogRepository
 import ru.aptechka.data.repository.DrugRepository
@@ -31,12 +32,13 @@ val repositoryModule = module {
     single { DrugRepository(get(), get()) }
     single { ShoppingRepository(get()) }
     single { CatalogRepository(get()) }
+    single { CatalogSeeder(androidContext(), get()) }
 }
 
 val viewModelModule = module {
     viewModel { KitsViewModel(get(), get()) }
     viewModel { (kitId: Long) -> KitDetailViewModel(kitId, get(), get(), get()) }
-    viewModel { (kitId: Long) -> AddDrugViewModel(kitId, get()) }
+    viewModel { (kitId: Long) -> AddDrugViewModel(kitId, get(), get()) }
     viewModel { (drugId: Long) -> MedDetailViewModel(drugId, get(), get()) }
     viewModel { ExpiryViewModel(get(), get(), get()) }
     viewModel { ShoppingViewModel(get()) }
