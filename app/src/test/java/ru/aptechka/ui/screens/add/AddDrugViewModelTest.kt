@@ -1,8 +1,6 @@
 package ru.aptechka.ui.screens.add
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -10,47 +8,12 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import ru.aptechka.data.db.dao.DrugBatchDao
-import ru.aptechka.data.db.dao.UserDrugDao
-import ru.aptechka.data.db.entity.DrugBatchEntity
-import ru.aptechka.data.db.entity.UserDrugEntity
 import ru.aptechka.data.repository.DrugRepository
 import ru.aptechka.domain.model.CategoryKey
 import ru.aptechka.domain.model.FormKey
+import ru.aptechka.util.FakeDrugBatchDao
+import ru.aptechka.util.FakeUserDrugDao
 import ru.aptechka.util.MainDispatcherRule
-
-private class FakeUserDrugDao : UserDrugDao {
-    val inserted = mutableListOf<UserDrugEntity>()
-    private var nextId = 1L
-
-    override suspend fun insertDrug(drug: UserDrugEntity): Long {
-        val id = nextId++
-        inserted += drug.copy(id = id)
-        return id
-    }
-
-    override fun getDrugsByKit(kitId: Long): Flow<List<UserDrugEntity>> = flowOf(emptyList())
-    override suspend fun getDrugById(id: Long): UserDrugEntity? = inserted.find { it.id == id }
-    override suspend fun updateDrug(drug: UserDrugEntity) = Unit
-    override suspend fun deleteDrug(drug: UserDrugEntity) = Unit
-}
-
-private class FakeDrugBatchDao : DrugBatchDao {
-    val inserted = mutableListOf<DrugBatchEntity>()
-    private var nextId = 1L
-
-    override suspend fun insertBatch(batch: DrugBatchEntity): Long {
-        val id = nextId++
-        inserted += batch.copy(id = id)
-        return id
-    }
-
-    override fun getBatchesByDrug(drugId: Long): Flow<List<DrugBatchEntity>> = flowOf(emptyList())
-    override suspend fun getBatchesForDrug(drugId: Long): List<DrugBatchEntity> = emptyList()
-    override fun getAllBatches(): Flow<List<DrugBatchEntity>> = flowOf(emptyList())
-    override suspend fun updateBatch(batch: DrugBatchEntity) = Unit
-    override suspend fun deleteBatch(batch: DrugBatchEntity) = Unit
-}
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AddDrugViewModelTest {

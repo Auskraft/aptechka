@@ -15,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -24,11 +23,11 @@ import org.koin.androidx.compose.koinViewModel
 import ru.aptechka.R
 import ru.aptechka.domain.model.BatchStatus
 import ru.aptechka.domain.model.DrugBatch
+import ru.aptechka.ui.forms.expiryLabel
 import ru.aptechka.ui.theme.LocalDimens
 import ru.aptechka.ui.theme.LocalStatusColors
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.math.abs
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -167,16 +166,7 @@ private fun BatchRow(
         else                      -> statusColors.okFg       to statusColors.okContainer
     }
 
-    val daysDiff = ((batch.expirationDate - System.currentTimeMillis()) / 86_400_000L).toInt()
-    val daysLabel = when {
-        daysDiff < 0  -> stringResource(R.string.expiry_expired, pluralStringResource(R.plurals.plural_days, abs(daysDiff), abs(daysDiff)))
-        daysDiff == 0 -> stringResource(R.string.expiry_today)
-        daysDiff < 60 -> stringResource(R.string.expiry_in_short, pluralStringResource(R.plurals.plural_days, daysDiff, daysDiff))
-        else          -> {
-            val months = daysDiff / 30
-            stringResource(R.string.expiry_in_short, pluralStringResource(R.plurals.plural_months, months, months))
-        }
-    }
+    val daysLabel = expiryLabel(batch.expirationDate, short = true)
 
     val dayStr  = SimpleDateFormat("d", Locale("ru")).format(Date(batch.expirationDate))
     val monStr  = SimpleDateFormat("MMM yy", Locale("ru")).format(Date(batch.expirationDate))

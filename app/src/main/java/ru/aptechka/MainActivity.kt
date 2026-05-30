@@ -27,6 +27,7 @@ import androidx.navigation.navArgument
 import ru.aptechka.ui.navigation.Screen
 import ru.aptechka.ui.screens.add.AddDrugScreen
 import ru.aptechka.ui.screens.expiry.ExpiryScreen
+import ru.aptechka.ui.screens.meddetail.MedDetailScreen
 import ru.aptechka.ui.screens.kits.KitDetailScreen
 import ru.aptechka.ui.screens.kits.KitsScreen
 import ru.aptechka.ui.screens.settings.SettingsScreen
@@ -133,6 +134,19 @@ private fun AppNavHost() {
                 val kitId = backStackEntry.arguments?.getLong("kitId") ?: return@composable
                 AddDrugScreen(
                     kitId         = kitId,
+                    navController = navController,
+                )
+            }
+
+            composable(
+                route     = Screen.MedDetail.route,
+                arguments = listOf(
+                    navArgument("drugId") { type = NavType.LongType },
+                ),
+            ) { backStackEntry ->
+                val drugId = backStackEntry.arguments?.getLong("drugId") ?: return@composable
+                MedDetailScreen(
+                    drugId        = drugId,
                     navController = navController,
                 )
             }

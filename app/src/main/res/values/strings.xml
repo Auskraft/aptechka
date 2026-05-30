@@ -165,6 +165,15 @@
     <string name="picker_color">Цвет</string>
     <string name="picker_icon">Иконка</string>
 
+    <!-- Medicine detail -->
+    <string name="med_qty_total">шт всего</string>
+    <string name="section_batches">Партии</string>
+    <string name="how_to_take">Как принимать</string>
+    <string name="delete_drug">Удалить препарат</string>
+    <string name="cd_decrease">Убавить</string>
+    <string name="cd_increase">Прибавить</string>
+    <string name="cd_delete">Удалить</string>
+
     <!-- Common -->
     <string name="save">Сохранить</string>
     <string name="cancel">Отмена</string>

@@ -34,12 +34,12 @@ import ru.aptechka.ui.navigation.Screen
 import ru.aptechka.domain.model.BatchStatus
 import ru.aptechka.domain.model.UserDrugWithBatches
 import ru.aptechka.ui.forms.Forms
+import ru.aptechka.ui.forms.expiryLabel
 import ru.aptechka.ui.theme.KitColors
 import ru.aptechka.ui.theme.LocalDimens
 import ru.aptechka.ui.theme.LocalStatusColors
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.math.abs
 
 // ── Sort enum ─────────────────────────────────────────────────────────────────
 
@@ -169,7 +169,7 @@ fun KitDetailScreen(
                 items(sorted, key = { it.drug.id }) { dw ->
                     DrugRow(
                         drugWithBatches = dw,
-                        onClick         = { /* TODO: med detail */ },
+                        onClick         = { navController.navigate(Screen.MedDetail.go(dw.drug.id)) },
                         onToCart        = { /* TODO */ },
                         onDelete        = { drugToDelete = dw },
                         modifier        = Modifier.padding(bottom = 8.dp),
@@ -270,20 +270,10 @@ private fun DrugRow(
         else                     -> statusColors.okFg
     }
 
-    val expiryLabel = when {
-        nearestExpiry == null -> stringResource(R.string.expiry_unknown)
-        else -> {
-            val days = ((nearestExpiry - System.currentTimeMillis()) / 86_400_000L).toInt()
-            when {
-                days < 0  -> stringResource(R.string.expiry_expired, pluralStringResource(R.plurals.plural_days, abs(days), abs(days)))
-                days == 0 -> stringResource(R.string.expiry_today)
-                days < 60 -> stringResource(R.string.expiry_in, pluralStringResource(R.plurals.plural_days, days, days))
-                else      -> {
-                    val months = days / 30
-                    stringResource(R.string.expiry_in, pluralStringResource(R.plurals.plural_months, months, months))
-                }
-            }
-        }
+    val expiryText = if (nearestExpiry == null) {
+        stringResource(R.string.expiry_unknown)
+    } else {
+        expiryLabel(nearestExpiry)
     }
 
     val formLabel = Forms.label(drug.form)
@@ -341,7 +331,7 @@ private fun DrugRow(
                 )
                 Spacer(Modifier.height(2.dp))
                 Text(
-                    text  = "$qtyStr · $expiryLabel",
+                    text  = "$qtyStr · $expiryText",
                     style = MaterialTheme.typography.bodyMedium,
                     color = statusColor,
                 )

@@ -26,6 +26,9 @@ class DrugRepository(
     fun observeAllBatches(): Flow<List<DrugBatch>> =
         batchDao.getAllBatches().map { it.map { e -> e.toDomain() } }
 
+    fun observeBatches(drugId: Long): Flow<List<DrugBatch>> =
+        batchDao.getBatchesByDrug(drugId).map { it.map { e -> e.toDomain() } }
+
     suspend fun getDrug(id: Long): UserDrug? = drugDao.getDrugById(id)?.toDomain()
 
     suspend fun getBatchesForDrug(drugId: Long): List<DrugBatch> =
