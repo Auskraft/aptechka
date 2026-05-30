@@ -13,12 +13,16 @@ import ru.aptechka.data.repository.ShoppingRepository
 import ru.aptechka.domain.model.DrugBatch
 import ru.aptechka.domain.model.ShoppingItem
 import ru.aptechka.domain.model.UserDrug
+import ru.aptechka.ui.common.SnackbarDispatcher
+import ru.aptechka.ui.common.SnackbarMessage
 
 class MedDetailViewModel(
     private val drugId: Long,
     private val drugRepo: DrugRepository,
     private val shoppingRepo: ShoppingRepository,
 ) : ViewModel() {
+
+    val snackbar = SnackbarDispatcher()
 
     private val _drug = MutableStateFlow<UserDrug?>(null)
     val drug: StateFlow<UserDrug?> = _drug.asStateFlow()
@@ -45,11 +49,15 @@ class MedDetailViewModel(
             drugRepo.saveBatch(
                 DrugBatch(drugId = drugId, quantity = quantity, expirationDate = expirationDate),
             )
+            snackbar.show(SnackbarMessage.BatchAdded)
         }
     }
 
     fun deleteBatch(batch: DrugBatch) {
-        viewModelScope.launch { drugRepo.deleteBatch(batch) }
+        viewModelScope.launch {
+            drugRepo.deleteBatch(batch)
+            snackbar.show(SnackbarMessage.BatchDeleted)
+        }
     }
 
     fun addToShopping() {
@@ -58,6 +66,7 @@ class MedDetailViewModel(
             shoppingRepo.save(
                 ShoppingItem(name = drug.name, unit = drug.unit, kitId = drug.kitId),
             )
+            snackbar.show(SnackbarMessage.ToShopping(drug.name))
         }
     }
 

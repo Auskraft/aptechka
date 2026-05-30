@@ -180,6 +180,13 @@
     <string name="cd_increase">Прибавить</string>
     <string name="cd_delete">Удалить</string>
 
+    <!-- Snackbars -->
+    <string name="snack_to_shopping">В покупки: %1$s</string>
+    <string name="snack_deleted_named">Удалено: %1$s</string>
+    <string name="snack_kit_deleted">Аптечка «%1$s» удалена</string>
+    <string name="snack_batch_deleted">Партия удалена</string>
+    <string name="snack_batch_added">Партия добавлена</string>
+
     <!-- Common -->
     <string name="save">Сохранить</string>
     <string name="cancel">Отмена</string>

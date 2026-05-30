@@ -15,6 +15,8 @@ import ru.aptechka.domain.model.DrugBatch
 import ru.aptechka.domain.model.Kit
 import ru.aptechka.domain.model.ShoppingItem
 import ru.aptechka.domain.model.UserDrug
+import ru.aptechka.ui.common.SnackbarDispatcher
+import ru.aptechka.ui.common.SnackbarMessage
 
 data class BatchWithContext(
     val batch: DrugBatch,
@@ -62,6 +64,8 @@ class ExpiryViewModel(
     private val shoppingRepo: ShoppingRepository,
 ) : ViewModel() {
 
+    val snackbar = SnackbarDispatcher()
+
     val uiState: StateFlow<ExpiryUiState> = combine(
         drugRepo.observeAllBatches(),
         drugRepo.observeAllDrugs(),
@@ -71,7 +75,10 @@ class ExpiryViewModel(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ExpiryUiState())
 
     fun deleteBatch(batch: DrugBatch) {
-        viewModelScope.launch { drugRepo.deleteBatch(batch) }
+        viewModelScope.launch {
+            drugRepo.deleteBatch(batch)
+            snackbar.show(SnackbarMessage.BatchDeleted)
+        }
     }
 
     fun addToShopping(ctx: BatchWithContext) {
@@ -79,6 +86,7 @@ class ExpiryViewModel(
             shoppingRepo.save(
                 ShoppingItem(name = ctx.drug.name, unit = ctx.drug.unit, kitId = ctx.kit.id),
             )
+            snackbar.show(SnackbarMessage.ToShopping(ctx.drug.name))
         }
     }
 }

@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import org.koin.androidx.compose.koinViewModel
 import ru.aptechka.R
 import ru.aptechka.domain.model.ShoppingItem
+import ru.aptechka.ui.common.rememberMessageSnackbarHostState
 import ru.aptechka.ui.theme.LocalDimens
 import ru.aptechka.ui.theme.LocalStatusColors
 
@@ -37,9 +38,11 @@ fun ShoppingScreen(viewModel: ShoppingViewModel = koinViewModel()) {
     val dims = LocalDimens.current
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val snackbarHostState = rememberMessageSnackbarHostState(viewModel.snackbar.messages)
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             LargeTopAppBar(
                 scrollBehavior = scrollBehavior,

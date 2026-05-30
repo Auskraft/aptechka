@@ -33,6 +33,7 @@ import org.koin.androidx.compose.koinViewModel
 import ru.aptechka.R
 import ru.aptechka.domain.model.Kit
 import ru.aptechka.domain.model.KitWithStats
+import ru.aptechka.ui.common.rememberMessageSnackbarHostState
 import ru.aptechka.ui.navigation.Screen
 import ru.aptechka.ui.theme.KitColors
 import ru.aptechka.ui.theme.LocalDimens
@@ -75,9 +76,11 @@ fun KitsScreen(
     val totalExpiring = kitsWithStats.sumOf { it.expiringSoonCount }
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val snackbarHostState = rememberMessageSnackbarHostState(viewModel.snackbar.messages)
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             LargeTopAppBar(
                 scrollBehavior = scrollBehavior,

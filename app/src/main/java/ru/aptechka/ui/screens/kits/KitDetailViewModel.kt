@@ -16,6 +16,8 @@ import ru.aptechka.domain.model.Kit
 import ru.aptechka.domain.model.ShoppingItem
 import ru.aptechka.domain.model.UserDrug
 import ru.aptechka.domain.model.UserDrugWithBatches
+import ru.aptechka.ui.common.SnackbarDispatcher
+import ru.aptechka.ui.common.SnackbarMessage
 
 class KitDetailViewModel(
     private val kitId: Long,
@@ -23,6 +25,8 @@ class KitDetailViewModel(
     private val kitRepo: KitRepository,
     private val shoppingRepo: ShoppingRepository,
 ) : ViewModel() {
+
+    val snackbar = SnackbarDispatcher()
 
     private val _kit = MutableStateFlow<Kit?>(null)
     val kit: StateFlow<Kit?> = _kit.asStateFlow()
@@ -37,12 +41,16 @@ class KitDetailViewModel(
     }
 
     fun deleteDrug(drug: UserDrug) {
-        viewModelScope.launch { drugRepo.deleteDrug(drug) }
+        viewModelScope.launch {
+            drugRepo.deleteDrug(drug)
+            snackbar.show(SnackbarMessage.DeletedNamed(drug.name))
+        }
     }
 
     fun addToShopping(drug: UserDrug) {
         viewModelScope.launch {
             shoppingRepo.save(ShoppingItem(name = drug.name, unit = drug.unit, kitId = drug.kitId))
+            snackbar.show(SnackbarMessage.ToShopping(drug.name))
         }
     }
 

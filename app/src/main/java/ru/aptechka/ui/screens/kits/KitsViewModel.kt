@@ -14,6 +14,8 @@ import ru.aptechka.domain.model.DrugBatch
 import ru.aptechka.domain.model.Kit
 import ru.aptechka.domain.model.KitWithStats
 import ru.aptechka.domain.model.UserDrug
+import ru.aptechka.ui.common.SnackbarDispatcher
+import ru.aptechka.ui.common.SnackbarMessage
 
 /**
  * Per-kit stats: drug count and expired/expiring batch counts scoped to each
@@ -54,6 +56,8 @@ class KitsViewModel(
     val kits: StateFlow<List<Kit>> = kitRepo.observeAll()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
+    val snackbar = SnackbarDispatcher()
+
     fun createKit(name: String, colorKey: String = "green", iconKey: String = "home") {
         viewModelScope.launch {
             kitRepo.save(
@@ -67,6 +71,9 @@ class KitsViewModel(
     }
 
     fun deleteKit(kit: Kit) {
-        viewModelScope.launch { kitRepo.delete(kit) }
+        viewModelScope.launch {
+            kitRepo.delete(kit)
+            snackbar.show(SnackbarMessage.KitDeleted(kit.name))
+        }
     }
 }

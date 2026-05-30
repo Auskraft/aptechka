@@ -23,6 +23,7 @@ import org.koin.androidx.compose.koinViewModel
 import ru.aptechka.R
 import ru.aptechka.domain.model.BatchStatus
 import ru.aptechka.domain.model.DrugBatch
+import ru.aptechka.ui.common.rememberMessageSnackbarHostState
 import ru.aptechka.ui.forms.expiryLabel
 import ru.aptechka.ui.theme.LocalDimens
 import ru.aptechka.ui.theme.LocalStatusColors
@@ -51,9 +52,11 @@ fun ExpiryScreen(viewModel: ExpiryViewModel = koinViewModel()) {
     val dims = LocalDimens.current
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val snackbarHostState = rememberMessageSnackbarHostState(viewModel.snackbar.messages)
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             LargeTopAppBar(
                 scrollBehavior = scrollBehavior,

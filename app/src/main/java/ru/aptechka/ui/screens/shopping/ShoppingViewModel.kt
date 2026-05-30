@@ -9,8 +9,12 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import ru.aptechka.data.repository.ShoppingRepository
 import ru.aptechka.domain.model.ShoppingItem
+import ru.aptechka.ui.common.SnackbarDispatcher
+import ru.aptechka.ui.common.SnackbarMessage
 
 class ShoppingViewModel(private val repo: ShoppingRepository) : ViewModel() {
+
+    val snackbar = SnackbarDispatcher()
 
     val toBuy: StateFlow<List<ShoppingItem>> = repo.observeAll()
         .map { it.filter { item -> !item.isPurchased } }
@@ -33,7 +37,10 @@ class ShoppingViewModel(private val repo: ShoppingRepository) : ViewModel() {
     }
 
     fun deleteItem(item: ShoppingItem) {
-        viewModelScope.launch { repo.delete(item) }
+        viewModelScope.launch {
+            repo.delete(item)
+            snackbar.show(SnackbarMessage.DeletedNamed(item.name))
+        }
     }
 
     fun clearPurchased() {

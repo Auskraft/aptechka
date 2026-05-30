@@ -33,6 +33,7 @@ import ru.aptechka.R
 import ru.aptechka.ui.navigation.Screen
 import ru.aptechka.domain.model.BatchStatus
 import ru.aptechka.domain.model.UserDrugWithBatches
+import ru.aptechka.ui.common.rememberMessageSnackbarHostState
 import ru.aptechka.ui.forms.Forms
 import ru.aptechka.ui.forms.expiryLabel
 import ru.aptechka.ui.theme.KitColors
@@ -61,6 +62,7 @@ fun KitDetailScreen(
 
     val drugs by viewModel.drugs.collectAsState()
     val dims = LocalDimens.current
+    val snackbarHostState = rememberMessageSnackbarHostState(viewModel.snackbar.messages)
     var sortMode by remember { mutableStateOf(SortMode.EXPIRY) }
     var showFabMenu by remember { mutableStateOf(false) }
     var drugToDelete by remember { mutableStateOf<UserDrugWithBatches?>(null) }
@@ -75,6 +77,7 @@ fun KitDetailScreen(
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 navigationIcon = {

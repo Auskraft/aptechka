@@ -29,6 +29,7 @@ import ru.aptechka.R
 import ru.aptechka.domain.model.BatchStatus
 import ru.aptechka.domain.model.DrugBatch
 import ru.aptechka.domain.model.UserDrug
+import ru.aptechka.ui.common.rememberMessageSnackbarHostState
 import ru.aptechka.ui.forms.Forms
 import ru.aptechka.ui.forms.expiryLabel
 import ru.aptechka.ui.theme.LocalDimens
@@ -48,6 +49,7 @@ fun MedDetailScreen(
     val batches by viewModel.batches.collectAsState()
     val deleted by viewModel.deleted.collectAsState()
     val dims = LocalDimens.current
+    val snackbarHostState = rememberMessageSnackbarHostState(viewModel.snackbar.messages)
 
     var showAddBatch by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -55,6 +57,7 @@ fun MedDetailScreen(
     LaunchedEffect(deleted) { if (deleted) navController.popBackStack() }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 navigationIcon = {
